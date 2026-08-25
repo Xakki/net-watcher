@@ -1,0 +1,40 @@
+name: net-watcher
+
+services:
+  web:
+    image: net-watcher:local
+    build:
+      context: .
+      dockerfile: Dockerfile
+    init: true
+    restart: unless-stopped
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:size=8m,mode=1777
+      - /var/cache/nginx:size=8m,uid=101,gid=101,mode=0750
+      - /var/run:size=1m,uid=101,gid=101,mode=0750
+    ports:
+      - "127.0.0.1:${NET_WATCHER_PORT:-18137}:8080"
+    mem_limit: 64m
+    cpus: 0.25
+    pids_limit: 64
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:8080/healthz | grep -qx ok"]
+      interval: 5s
+      timeout: 2s
+      retries: 6
+      start_period: 3s
+    networks:
+      - isolated
+
+networks:
+  isolated:
+    name: net-watcher-isolated
+    driver: bridge
+    attachable: false
+    driver_opts:
+      com.docker.network.bridge.enable_ip_masquerade: "false"

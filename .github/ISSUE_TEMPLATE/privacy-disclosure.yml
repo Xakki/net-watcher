@@ -1,0 +1,50 @@
+name: Privacy or disclosure concern
+description: Report unintended public content or a privacy boundary concern.
+title: "Privacy: "
+labels:
+  - privacy
+body:
+  - type: markdown
+    attributes:
+      value: Do not paste sensitive material here. Use private vulnerability reporting if public details could cause harm.
+  - type: dropdown
+    id: type
+    attributes:
+      label: Concern type
+      options:
+        - Unexpected public metadata
+        - External request or asset
+        - Person-level or contact information
+        - Repository disclosure
+        - Accessibility or consent concern
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: location
+    attributes:
+      label: Public location
+      description: Provide a URL or file path without reproducing sensitive content.
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Potential impact
+      description: Describe the exposure in general terms.
+    validations:
+      required: true
+  - type: textarea
+    id: safe_details
+    attributes:
+      label: Safe reproduction details
+      description: Include only details that are safe to publish.
+    validations:
+      required: false
+  - type: checkboxes
+    id: handling
+    attributes:
+      label: Safe handling
+      options:
+        - label: I have not pasted private records, credentials, or exploit details into this public report.
+          required: true

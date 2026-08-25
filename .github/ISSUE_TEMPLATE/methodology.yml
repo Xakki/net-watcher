@@ -1,0 +1,50 @@
+name: Methodology concern
+description: Question the proposed measurement or interpretation method.
+title: "Methodology: "
+labels:
+  - methodology
+body:
+  - type: markdown
+    attributes:
+      value: Net Watcher is a draft with no active study and no published findings.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Collection time
+        - Record time
+        - Longitudinal change
+        - Sampling and coverage
+        - Uncertainty and interpretation
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: concern
+    attributes:
+      label: Concern
+      description: Describe the assumption, limitation, or ambiguity.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Public references
+      description: Link to public references that help evaluate the concern.
+    validations:
+      required: false
+  - type: textarea
+    id: change
+    attributes:
+      label: Suggested change
+      description: Explain how the method or wording could become more accurate.
+    validations:
+      required: false
+  - type: checkboxes
+    id: boundary
+    attributes:
+      label: Data boundary
+      options:
+        - label: This report contains no private, restricted, or credentialed material.
+          required: true

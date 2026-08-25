@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Net Watcher is a draft research site for careful network observation across three clocks.">
+  <title>Net Watcher — a network measurement draft</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <header class="site-header">
+    <a class="wordmark" href="#top" aria-label="Net Watcher home">NET<span>/</span>WATCHER</a>
+    <p class="host">Planned home: net.xakki.pro</p>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="top" aria-labelledby="title">
+      <div class="hero-copy">
+        <p class="eyebrow">Network observation / public research draft</p>
+        <h1 id="title">Watch the network<br>without rushing<br>the conclusion.</h1>
+        <p class="lede">Net Watcher is a proposed measurement study of how public network records change over different time scales.</p>
+      </div>
+
+      <figure class="clock-field" aria-labelledby="clock-caption">
+        <div class="orbit orbit-fast">
+          <span class="hand"></span>
+          <span class="clock-label">Now</span>
+          <span class="clock-detail">request time</span>
+        </div>
+        <div class="orbit orbit-medium">
+          <span class="hand"></span>
+          <span class="clock-label">Then</span>
+          <span class="clock-detail">record time</span>
+        </div>
+        <div class="orbit orbit-slow">
+          <span class="hand"></span>
+          <span class="clock-label">Long</span>
+          <span class="clock-detail">change over time</span>
+        </div>
+        <figcaption id="clock-caption">Three clocks keep collection time, record time, and longitudinal change visibly separate.</figcaption>
+      </figure>
+    </section>
+
+    <section class="status-band" id="status" aria-labelledby="status-title">
+      <div>
+        <p class="section-label">Current status</p>
+        <h2 id="status-title">Method before findings</h2>
+      </div>
+      <div class="status-copy">
+        <p><strong>Draft only.</strong> No study is active. No results are published.</p>
+        <p>This page describes intent and limits; it is not evidence of collection, operation, or deployment.</p>
+      </div>
+    </section>
+
+    <section class="method-grid" id="method" aria-labelledby="method-title">
+      <div class="section-intro">
+        <p class="section-label">Measurement frame</p>
+        <h2 id="method-title">Keep each clock honest.</h2>
+        <p>A public record can be observed now, refer to an earlier interval, and change again later. The proposed method treats those moments as separate dimensions rather than one timeline.</p>
+      </div>
+      <ol class="clock-notes" id="clocks">
+        <li>
+          <span class="note-marker">A</span>
+          <div><h3>Collection clock</h3><p>When an observation is made and the public source is consulted.</p></div>
+        </li>
+        <li>
+          <span class="note-marker">B</span>
+          <div><h3>Record clock</h3><p>What interval or state the observed record itself describes.</p></div>
+        </li>
+        <li>
+          <span class="note-marker">C</span>
+          <div><h3>Change clock</h3><p>How repeated observations differ across a declared window.</p></div>
+        </li>
+      </ol>
+    </section>
+
+    <section class="boundary" id="boundaries" aria-labelledby="boundary-title">
+      <p class="section-label">Research boundary</p>
+      <h2 id="boundary-title">Public structure, synthetic rehearsal.</h2>
+      <div class="boundary-columns">
+        <div>
+          <h3>Inside the draft</h3>
+          <ul>
+            <li>Publicly available network records</li>
+            <li>Synthetic examples using reserved identifiers</li>
+            <li>Declared source, time, and interpretation limits</li>
+            <li>Aggregate descriptions only if a later study is approved</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Outside the draft</h3>
+          <ul>
+            <li>Private, restricted, or credentialed sources</li>
+            <li>Person-level or organization-contact records</li>
+            <li>Visitor measurement, forms, or account features</li>
+            <li>Raw records or operational network access</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="interpretation" id="interpretation" aria-labelledby="interpretation-title">
+      <div class="section-intro">
+        <p class="section-label">Interpretation rule</p>
+        <h2 id="interpretation-title">Observation is not explanation.</h2>
+      </div>
+      <blockquote>
+        <p>The proposed study is observational. A measured association cannot establish cause, intent, ownership, or responsibility.</p>
+      </blockquote>
+      <p>Any future publication would need to state uncertainty, missingness, source coverage, time bounds, and plausible alternative explanations beside every claim.</p>
+    </section>
+
+    <section class="corrections" id="corrections" aria-labelledby="corrections-title">
+      <p class="section-label">Public review</p>
+      <h2 id="corrections-title">Question the method.</h2>
+      <p>Report a correction, methodology concern, privacy concern, or responsible disclosure in the public repository.</p>
+      <a class="text-link" href="https://github.com/Xakki/net-watcher/issues">Open the correction queue <span aria-hidden="true">→</span></a>
+    </section>
+  </main>
+
+  <footer>
+    <p>Net Watcher <span aria-hidden="true">·</span> Research landing draft</p>
+    <p>No active study <span aria-hidden="true">·</span> No published findings</p>
+  </footer>
+</body>
+</html>

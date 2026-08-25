@@ -1,0 +1,44 @@
+name: Research correction
+description: Request a factual, attribution, or scope correction.
+title: "Correction: "
+labels:
+  - correction
+body:
+  - type: markdown
+    attributes:
+      value: Do not include private records, credentials, or restricted source material.
+  - type: input
+    id: location
+    attributes:
+      label: Location
+      description: Identify the public page section or repository file.
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: What needs correction?
+      description: Quote only the minimum public text needed to identify the concern.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Public evidence
+      description: Link to a stable public source and explain how it supports the correction.
+    validations:
+      required: true
+  - type: textarea
+    id: proposed
+    attributes:
+      label: Proposed wording
+      description: Suggest precise replacement wording if possible.
+    validations:
+      required: false
+  - type: checkboxes
+    id: boundary
+    attributes:
+      label: Data boundary
+      options:
+        - label: I have not included private records, credentials, or restricted source material.
+          required: true
