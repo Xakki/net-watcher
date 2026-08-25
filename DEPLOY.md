@@ -12,7 +12,11 @@ make smoke
 make down
 ```
 
-This binds the service only to `127.0.0.1:18137` by default. That is the tracked upstream reservation; [docs/ports.md](docs/ports.md) defines the HTTP/1.1 health and shared-nginx boundary. The Compose bridge disables IP masquerading, so the site requires no outbound network access.
+This binds the service only to `172.17.0.1:10210` by default so the containerized
+shared nginx can reach it without public exposure. Production owns `10210-10219`;
+the test mirror owns `11210-11219` and uses `127.0.0.1:11210` for web. See
+[docs/ports.md](docs/ports.md) for the complete HTTP/1.1 boundary. The Compose
+bridge disables IP masquerading, so the site requires no outbound network access.
 
 ## Publication gate
 

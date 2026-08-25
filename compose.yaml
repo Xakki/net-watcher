@@ -18,7 +18,9 @@ services:
       - /var/cache/nginx:size=8m,uid=101,gid=101,mode=0750
       - /var/run:size=1m,uid=101,gid=101,mode=0750
     ports:
-      - "127.0.0.1:${NET_WATCHER_PORT:-18137}:8080"
+      # shared-nginx reaches host upstreams through the docker0 bridge.
+      # The test mirror explicitly overrides this with its loopback reservation.
+      - "${NET_WATCHER_BIND:-172.17.0.1:10210}:8080"
     mem_limit: 64m
     cpus: 0.25
     pids_limit: 64

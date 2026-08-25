@@ -1,7 +1,11 @@
 SHELL := /bin/sh
 COMPOSE := docker compose -p net-watcher -f compose.yaml
-PORT ?= 18137
-URL := http://127.0.0.1:$(PORT)
+# The bind spec is the single knob. An untracked .env may override it, while the
+# tracked default is reachable only from the host/docker bridge, never publicly.
+BIND ?= $(shell if [ -f ./.env ]; then . ./.env; fi; printf '%s' "$${NET_WATCHER_BIND:-172.17.0.1:10210}")
+PORT := $(lastword $(subst :, ,$(BIND)))
+HOST := $(firstword $(subst :, ,$(BIND)))
+URL := http://$(HOST):$(PORT)
 
 .PHONY: help config build test lint up down ps logs smoke verify publish-check
 
@@ -10,11 +14,11 @@ help: ## Show the supported local commands.
 	@awk 'BEGIN {FS = ":.*## "} /^[a-z-]+:.*## / {printf "  %-15s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 config: ## Validate the fixed local Compose configuration.
-	@NET_WATCHER_PORT=$(PORT) $(COMPOSE) config --quiet
-	@printf 'Compose configuration is valid (127.0.0.1:%s).\n' '$(PORT)'
+	@NET_WATCHER_BIND=$(BIND) $(COMPOSE) config --quiet
+	@printf 'Compose configuration is valid (%s).\n' '$(BIND)'
 
 build: ## Build the pinned local container image.
-	@NET_WATCHER_PORT=$(PORT) $(COMPOSE) build
+	@NET_WATCHER_BIND=$(BIND) $(COMPOSE) build
 
 test: ## Run the standard-library verifier mutation tests.
 	@python3 -B -m unittest -v tests.test_verify_site
@@ -24,20 +28,20 @@ lint: ## Scan the complete future public repository boundary.
 	@git diff --check
 
 up: ## Start the local isolated service; never publishes.
-	@NET_WATCHER_PORT=$(PORT) $(COMPOSE) up -d --build
+	@NET_WATCHER_BIND=$(BIND) $(COMPOSE) up -d --build
 
 # Removing only this explicit Compose project prevents selector drift.
 down: ## Stop and remove only local Net Watcher resources.
-	@NET_WATCHER_PORT=$(PORT) $(COMPOSE) down --remove-orphans
+	@NET_WATCHER_BIND=$(BIND) $(COMPOSE) down --remove-orphans
 
 ps: ## Show only local Net Watcher containers.
-	@NET_WATCHER_PORT=$(PORT) $(COMPOSE) ps
+	@NET_WATCHER_BIND=$(BIND) $(COMPOSE) ps
 
 logs: ## Follow only the local web service logs.
-	@NET_WATCHER_PORT=$(PORT) $(COMPOSE) logs --tail=100 -f web
+	@NET_WATCHER_BIND=$(BIND) $(COMPOSE) logs --tail=100 -f web
 
 smoke: ## Check health, content, and security headers locally.
-	@NET_WATCHER_PORT=$(PORT) $(COMPOSE) up -d --wait web
+	@NET_WATCHER_BIND=$(BIND) $(COMPOSE) up -d --wait web
 	@curl --fail --silent --show-error '$(URL)/healthz' | grep -qx 'ok'
 	@curl --fail --silent --show-error '$(URL)/' | grep -q 'Net Watcher'
 	@curl --fail --silent --show-error --head '$(URL)/' | grep -qi '^Content-Security-Policy:'

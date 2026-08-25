@@ -27,12 +27,15 @@ make ps
 make down
 ```
 
-The default service URL is `http://127.0.0.1:18137`. This is the single reserved localhost upstream; see [docs/ports.md](docs/ports.md) for the HTTP/1.1 shared-nginx contract. To use another free local port for an isolated check without creating a file:
+The production upstream is `http://172.17.0.1:10210`. The project reserves
+`10210-10219` for production and `11210-11219` for its test mirror; only web ports
+`10210` and `11210` are currently assigned. See [docs/ports.md](docs/ports.md) for
+the HTTP/1.1 shared-nginx contract. Run an isolated mirror check with:
 
 ```sh
-make up PORT=18138
-make smoke PORT=18138
-make down PORT=18138
+make up BIND=127.0.0.1:11210
+make smoke BIND=127.0.0.1:11210
+make down BIND=127.0.0.1:11210
 ```
 
 All Compose commands are pinned to the `net-watcher` project. `make verify` is local and non-publishing. `make publish-check` validates the same boundary and then fails closed unless both tracked publication decisions are final.
@@ -41,7 +44,10 @@ All Compose commands are pinned to the `net-watcher` project. `make verify` is l
 
 The served tree contains only `site/index.html` and `site/styles.css`. The verifier rejects unexpected files, scripts, forms, active media, external assets, event handlers, results-like presentation, sensitive record classes, lifecycle identifiers, machine paths, credential-shaped values, oversized files, invalid UTF-8, and disallowed Unicode controls.
 
-The Docker image uses a digest-pinned unprivileged NGINX base. Compose binds only to localhost, uses a non-masquerading isolated bridge, drops capabilities, applies resource limits, mounts writable runtime paths as bounded temporary filesystems, and checks `/healthz`.
+The Docker image uses a digest-pinned unprivileged NGINX base. Compose binds only
+to the host docker bridge in production or loopback for the test mirror, uses a
+non-masquerading isolated bridge, drops capabilities, applies resource limits,
+mounts writable runtime paths as bounded temporary filesystems, and checks `/healthz`.
 
 ## Corrections and contributions
 
