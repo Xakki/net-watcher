@@ -19,8 +19,7 @@ REQUIRED_SECTIONS = (
     "**Acceptance Criteria:**",
 )
 EXPECTED_STAGES = {
-    **{f"NW-{number}": "done" for number in range(1, 2)},
-    **{f"NW-{number}": "ready" for number in range(2, 3)},
+    **{f"NW-{number}": "done" for number in range(1, 3)},
     **{f"NW-{number}": "grooming" for number in range(3, 7)},
 }
 
