@@ -1,13 +1,11 @@
 SHELL := /bin/sh
 COMPOSE := docker compose -p net-watcher -f compose.yaml
-# The bind spec is the single knob. An untracked .env may override it, while the
-# tracked default is reachable only from the host/docker bridge, never publicly.
 BIND ?= $(shell if [ -f ./.env ]; then . ./.env; fi; printf '%s' "$${NET_WATCHER_BIND:-172.17.0.1:10210}")
 PORT := $(lastword $(subst :, ,$(BIND)))
 HOST := $(firstword $(subst :, ,$(BIND)))
 URL := http://$(HOST):$(PORT)
 
-.PHONY: help config build test lint up down ps logs smoke verify publish-check
+.PHONY: help config build test kanban-lint lint up down ps logs smoke verify publish-check
 
 help: ## Show the supported local commands.
 	@printf '%s\n' 'Net Watcher local commands:'
@@ -20,17 +18,19 @@ config: ## Validate the fixed local Compose configuration.
 build: ## Build the pinned local container image.
 	@NET_WATCHER_BIND=$(BIND) $(COMPOSE) build
 
-test: ## Run the standard-library verifier mutation tests.
-	@python3 -B -m unittest -v tests.test_verify_site
+test: ## Run all standard-library mutation tests.
+	@python3 -B -m unittest -v tests.test_verify_site tests.test_verify_kanban
 
-lint: ## Scan the complete future public repository boundary.
+kanban-lint: ## Validate the standalone public Kanban board.
+	@python3 -B tools/verify_kanban.py
+
+lint: kanban-lint ## Scan the complete tracked public boundary.
 	@python3 -B tools/verify_site.py --repository
 	@git diff --check
 
 up: ## Start the local isolated service; never publishes.
 	@NET_WATCHER_BIND=$(BIND) $(COMPOSE) up -d --build
 
-# Removing only this explicit Compose project prevents selector drift.
 down: ## Stop and remove only local Net Watcher resources.
 	@NET_WATCHER_BIND=$(BIND) $(COMPOSE) down --remove-orphans
 

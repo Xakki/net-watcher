@@ -87,7 +87,7 @@ footer p { margin: 0; }
 
 @media (max-width: 780px) {
   .hero { grid-template-columns: 1fr; min-height: auto; padding-top: 3.5rem; }
-  h1 { font-size: clamp(3.4rem, 16vw, 6rem); }
+  h1 { font-size: clamp(2.5rem, 14.5vw, 6rem); }
   .clock-field { min-height: 450px; }
   .status-band, .method-grid, .interpretation, .boundary-columns { grid-template-columns: 1fr; }
   .method-grid, .interpretation { padding: 5rem 0; }
@@ -103,6 +103,10 @@ footer p { margin: 0; }
   .clock-detail { display: none; }
   .status-band { margin-inline: -1rem; padding: 2rem 1rem; }
   footer { flex-direction: column; }
+}
+
+@media (max-width: 320px) {
+  h1 { font-size: clamp(2.4rem, 13.75vw, 6rem); }
 }
 
 @media (prefers-reduced-motion: reduce) {
