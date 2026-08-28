@@ -63,7 +63,7 @@ h1 { margin: 1rem 0 1.5rem; font: 900 clamp(3.7rem, 8vw, 8.6rem)/.77 var(--displ
 .clock-notes { margin: 0; padding: 0; list-style: none; }
 .clock-notes li { display: grid; grid-template-columns: 3.2rem 1fr; gap: 1rem; padding: 1.5rem 0; border-top: 1px solid var(--line); }
 .clock-notes li:last-child { border-bottom: 1px solid var(--line); }
-.note-marker { display: grid; place-items: center; width: 2.4rem; height: 2.4rem; border: 1px solid var(--signal); border-radius: 50%; color: var(--signal); font: .8rem/1 var(--utility); }
+.note-marker { display: grid; place-items: center; width: 2.4rem; height: 2.4rem; border: 1px solid var(--signal); border-radius: 50%; color: var(--ink); font: .8rem/1 var(--utility); }
 .clock-notes h3, .boundary h3 { margin-bottom: .4rem; font: 800 1.2rem/1 var(--display); text-transform: uppercase; }
 .clock-notes p { margin-bottom: 0; color: var(--muted); }
 

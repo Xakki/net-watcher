@@ -41,6 +41,44 @@ REGULAR_GIT_MODES = {"100644", "100755"}
 CARD_PATH = re.compile(r"\.claude/kanban/(?:grooming|todo|progress|test|ready|done)/NW-[1-9][0-9]*-[a-z0-9]+(?:-[a-z0-9]+)*\.md")
 STATIC_ESCAPE = re.compile(r"\\u\{([0-9a-fA-F]{1,6})\}|\\u([0-9a-fA-F]{4})|\\x([0-9a-fA-F]{2})")
 BASE64_TOKEN = re.compile(r"(?<![A-Za-z0-9+/=])[A-Za-z0-9+/]{16,}={0,2}(?![A-Za-z0-9+/=])")
+SINGLE_URL_ATTRIBUTES = {
+    "action",
+    "background",
+    "cite",
+    "classid",
+    "codebase",
+    "data",
+    "formaction",
+    "href",
+    "icon",
+    "longdesc",
+    "manifest",
+    "poster",
+    "profile",
+    "src",
+    "usemap",
+    "xlink:href",
+}
+URL_LIST_ATTRIBUTES = {"archive", "attributionsrc", "ping"}
+SRCSET_ATTRIBUTES = {"imagesrcset", "srcset"}
+ASSET_URL_ATTRIBUTES = {
+    "archive",
+    "attributionsrc",
+    "background",
+    "classid",
+    "codebase",
+    "data",
+    "icon",
+    "imagesrcset",
+    "manifest",
+    "ping",
+    "poster",
+    "profile",
+    "src",
+    "srcset",
+    "usemap",
+}
+ASCII_WHITESPACE = "\t\n\f\r "
 
 
 class SiteError(ValueError):
@@ -51,6 +89,58 @@ class PublicationError(ValueError):
     def __init__(self, errors: list[str]):
         self.errors = errors
         super().__init__("; ".join(errors))
+
+
+def _srcset_urls(value: str):
+    position = 0
+    while position < len(value):
+        while position < len(value) and value[position] in ASCII_WHITESPACE + ",":
+            position += 1
+        if position == len(value):
+            return
+        start = position
+        while position < len(value) and value[position] not in ASCII_WHITESPACE:
+            position += 1
+        candidate = value[start:position]
+        trailing_commas = len(candidate) - len(candidate.rstrip(","))
+        candidate = candidate.rstrip(",")
+        if candidate:
+            yield candidate
+        if trailing_commas:
+            continue
+        parentheses = 0
+        while position < len(value):
+            char = value[position]
+            position += 1
+            if char == "(":
+                parentheses += 1
+            elif char == ")" and parentheses:
+                parentheses -= 1
+            elif char == "," and not parentheses:
+                break
+
+
+def _url_kind(value: str) -> str | None:
+    canonical = value.strip(ASCII_WHITESPACE).replace("\\", "/")
+    if not canonical:
+        return "unsafe"
+    try:
+        parsed = urlparse(canonical)
+    except ValueError:
+        return "unsafe"
+    if parsed.scheme:
+        if parsed.scheme.casefold() not in {"http", "https"}:
+            return "unsafe"
+        return "external"
+    if parsed.netloc or canonical.startswith("//"):
+        return "external"
+    return None
+
+
+def _is_asset_url(tag: str, name: str) -> bool:
+    return name in ASSET_URL_ATTRIBUTES or (
+        name in {"href", "xlink:href"} and tag not in {"a", "area"}
+    )
 
 
 class SiteParser(html.parser.HTMLParser):
@@ -71,11 +161,26 @@ class SiteParser(html.parser.HTMLParser):
             self.ids.add(values["id"] or "")
         if values.get("style"):
             self.errors.append("inline style is prohibited")
-        if tag in {"img", "source", "link"}:
-            asset = values.get("src") or values.get("href") or ""
-            parsed = urlparse(asset)
-            if parsed.scheme or parsed.netloc or asset.startswith("//"):
-                self.errors.append("external asset is prohibited")
+        for raw_name, raw_value in attrs:
+            name = raw_name.lower()
+            if raw_value is None:
+                continue
+            if name in SRCSET_ATTRIBUTES:
+                urls = _srcset_urls(raw_value)
+            elif name in URL_LIST_ATTRIBUTES:
+                urls = iter(raw_value.split())
+            elif name in SINGLE_URL_ATTRIBUTES:
+                urls = iter((raw_value,))
+            else:
+                continue
+            for url in urls:
+                kind = _url_kind(url)
+                if kind == "unsafe":
+                    self.errors.append("unsafe URL is prohibited")
+                elif kind == "external" and _is_asset_url(tag, name):
+                    self.errors.append("external asset is prohibited")
+        if tag == "meta" and (values.get("http-equiv") or "").casefold() == "refresh":
+            self.errors.append("meta refresh is prohibited")
         if any(name.lower().startswith("on") for name, _ in attrs):
             self.errors.append("event handler attribute is prohibited")
 
@@ -217,6 +322,132 @@ def read_bounded(path: Path) -> str:
         reader.close()
 
 
+def _consume_css_escape(text: str, position: int) -> tuple[str, int]:
+    position += 1
+    if position == len(text):
+        return "", position
+    if text[position] in "\n\f":
+        return "", position + 1
+    if text[position] == "\r":
+        return "", position + 2 if text[position : position + 2] == "\r\n" else position + 1
+    end = position
+    while end < len(text) and end - position < 6 and text[end] in "0123456789abcdefABCDEF":
+        end += 1
+    if end > position:
+        codepoint = int(text[position:end], 16)
+        if end < len(text) and text[end] in ASCII_WHITESPACE:
+            end += 1
+        if codepoint == 0 or codepoint > 0x10FFFF or 0xD800 <= codepoint <= 0xDFFF:
+            return "\ufffd", end
+        return chr(codepoint), end
+    return text[position], position + 1
+
+
+def _consume_css_string(text: str, position: int) -> tuple[str, int]:
+    quote_char = text[position]
+    position += 1
+    result: list[str] = []
+    while position < len(text):
+        char = text[position]
+        if char == quote_char:
+            return "".join(result), position + 1
+        if char in "\n\r\f":
+            return "".join(result), position
+        if char == "\\":
+            decoded, position = _consume_css_escape(text, position)
+            result.append(decoded)
+        else:
+            result.append(char)
+            position += 1
+    return "".join(result), position
+
+
+def _skip_css_space_and_comments(text: str, position: int) -> int:
+    while position < len(text):
+        if text[position] in ASCII_WHITESPACE:
+            position += 1
+        elif text.startswith("/*", position):
+            end = text.find("*/", position + 2)
+            if end < 0:
+                return len(text)
+            position = end + 2
+        else:
+            return position
+    return position
+
+
+def _consume_css_name(text: str, position: int) -> tuple[str, int]:
+    result: list[str] = []
+    while position < len(text):
+        char = text[position]
+        if char.isalnum() or char in "-_" or ord(char) >= 128:
+            result.append(char)
+            position += 1
+        elif char == "\\":
+            decoded, position = _consume_css_escape(text, position)
+            result.append(decoded)
+        else:
+            break
+    return "".join(result), position
+
+
+def _consume_css_url(text: str, position: int) -> tuple[str, int]:
+    position = _skip_css_space_and_comments(text, position)
+    if position < len(text) and text[position] in "'\"":
+        value, position = _consume_css_string(text, position)
+        position = _skip_css_space_and_comments(text, position)
+        if position < len(text) and text[position] == ")":
+            position += 1
+        return value, position
+    result: list[str] = []
+    while position < len(text):
+        char = text[position]
+        if char == ")":
+            return "".join(result).rstrip(ASCII_WHITESPACE), position + 1
+        if char == "\\":
+            decoded, position = _consume_css_escape(text, position)
+            result.append(decoded)
+        else:
+            result.append(char)
+            position += 1
+    return "".join(result).rstrip(ASCII_WHITESPACE), position
+
+
+def _css_urls(text: str):
+    position = 0
+    while position < len(text):
+        if text.startswith("/*", position):
+            position = _skip_css_space_and_comments(text, position)
+            continue
+        if text[position] in "'\"":
+            _, position = _consume_css_string(text, position)
+            continue
+        if text[position] == "@":
+            name, end = _consume_css_name(text, position + 1)
+            if name.casefold() == "import":
+                value_start = _skip_css_space_and_comments(text, end)
+                if value_start < len(text) and text[value_start] in "'\"":
+                    value, position = _consume_css_string(text, value_start)
+                    yield value
+                    continue
+                function, function_end = _consume_css_name(text, value_start)
+                if function.casefold() == "url" and function_end < len(text) and text[function_end] == "(":
+                    value, position = _consume_css_url(text, function_end + 1)
+                    yield value
+                    continue
+            position = max(end, position + 1)
+            continue
+        if text[position].isalnum() or text[position] in "-_\\" or ord(text[position]) >= 128:
+            name, end = _consume_css_name(text, position)
+            if name.casefold() == "url" and end < len(text) and text[end] == "(":
+                value, position = _consume_css_url(text, end + 1)
+                yield value
+                continue
+            position = max(end, position + 1)
+            continue
+        position += 1
+
+
 def verify_site_content(html_text: str, css_text: str, actual: set[str]) -> None:
     if actual != ALLOWED_SITE_FILES:
         raise SiteError(f"site file set mismatch: {sorted(actual)}")
@@ -240,8 +471,12 @@ def verify_site_content(html_text: str, css_text: str, actual: set[str]) -> None
         errors.append("internal metadata is prohibited")
     if "<table" in normalized or re.search(r"\b\d+(?:\.\d+)?%\b", visible):
         errors.append("results-like presentation is prohibited")
-    if re.search(r"url\s*\(\s*['\"]?(?:https?:)?//", css_text, re.IGNORECASE):
-        errors.append("external CSS asset is prohibited")
+    for url in _css_urls(css_text):
+        kind = _url_kind(url)
+        if kind == "unsafe":
+            errors.append("unsafe CSS asset is prohibited")
+        elif kind == "external":
+            errors.append("external CSS asset is prohibited")
     if errors:
         raise SiteError("; ".join(errors))
 

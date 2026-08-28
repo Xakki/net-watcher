@@ -25,20 +25,20 @@
       <figure class="clock-field" aria-labelledby="clock-caption">
         <div class="orbit orbit-fast">
           <span class="hand"></span>
-          <span class="clock-label">Now</span>
-          <span class="clock-detail">request time</span>
+          <span class="clock-label">Event</span>
+          <span class="clock-detail">registration time</span>
         </div>
         <div class="orbit orbit-medium">
           <span class="hand"></span>
-          <span class="clock-label">Then</span>
-          <span class="clock-detail">record time</span>
+          <span class="clock-label">Route</span>
+          <span class="clock-detail">observation time</span>
         </div>
         <div class="orbit orbit-slow">
           <span class="hand"></span>
-          <span class="clock-label">Long</span>
-          <span class="clock-detail">change over time</span>
+          <span class="clock-label">Validate</span>
+          <span class="clock-detail">snapshot time</span>
         </div>
-        <figcaption id="clock-caption">Three clocks keep collection time, record time, and longitudinal change visibly separate.</figcaption>
+        <figcaption id="clock-caption">Three clocks keep registration-event, routing-observation, and validation-snapshot time visibly separate.</figcaption>
       </figure>
     </section>
 
@@ -57,20 +57,20 @@
       <div class="section-intro">
         <p class="section-label">Measurement frame</p>
         <h2 id="method-title">Keep each clock honest.</h2>
-        <p>A public record can be observed now, refer to an earlier interval, and change again later. The proposed method treats those moments as separate dimensions rather than one timeline.</p>
+        <p>A public registration record can describe an earlier event, routing state can be observed later, and cited sources can be checked together in a later validation snapshot. The proposed method treats those moments as separate dimensions rather than one timeline.</p>
       </div>
       <ol class="clock-notes" id="clocks">
         <li>
           <span class="note-marker">A</span>
-          <div><h3>Collection clock</h3><p>When an observation is made and the public source is consulted.</p></div>
+          <div><h3>Registration-event clock</h3><p>When the event or interval described by a public registration record occurred.</p></div>
         </li>
         <li>
           <span class="note-marker">B</span>
-          <div><h3>Record clock</h3><p>What interval or state the observed record itself describes.</p></div>
+          <div><h3>Routing-observation clock</h3><p>When public routing state is observed.</p></div>
         </li>
         <li>
           <span class="note-marker">C</span>
-          <div><h3>Change clock</h3><p>How repeated observations differ across a declared window.</p></div>
+          <div><h3>Validation-snapshot clock</h3><p>When cited public sources are checked together; repeated snapshots may show change across a declared window.</p></div>
         </li>
       </ol>
     </section>
@@ -108,7 +108,7 @@
       <blockquote>
         <p>The proposed study is observational. A measured association cannot establish cause, intent, ownership, or responsibility.</p>
       </blockquote>
-      <p>Any future publication would need to state uncertainty, missingness, source coverage, time bounds, and plausible alternative explanations beside every claim.</p>
+      <p>Any future conclusion would need to identify the clock supporting each observation and state uncertainty, missingness, source coverage, time bounds, and plausible alternative explanations beside every claim.</p>
     </section>
 
     <section class="corrections" id="corrections" aria-labelledby="corrections-title">

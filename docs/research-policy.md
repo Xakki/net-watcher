@@ -4,7 +4,7 @@ Net Watcher is non-commercial observational network research. Its strongest perm
 
 ## Time model
 
-Methodology separates registration-event time, routing-observation time, and validation-snapshot time. Conclusions must state which clock supports each observation and preserve uncertainty.
+Methodology separates three clocks: registration-event time, when the event or interval described by a public registration record occurred; routing-observation time, when public routing state was observed; and validation-snapshot time, when cited public sources were checked together. Repeated validation snapshots may support a declared change window, but do not collapse the three clocks into one timeline. Each conclusion must identify the clock supporting each observation and preserve uncertainty.
 
 ## Current scope
 

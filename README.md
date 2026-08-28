@@ -36,7 +36,7 @@ Production reserves `10210-10219/tcp` and binds web to `172.17.0.1:10210`. The t
 - [Publication boundary](publication-boundary.json)
 - [Public tasks](.claude/kanban/)
 
-The strongest interpretation is association only: observations cannot establish cause, intent, responsibility, or maliciousness. Methodology separates registration-event, routing-observation, and validation-snapshot time.
+The strongest interpretation is association only: observations cannot establish cause, intent, responsibility, or maliciousness. Methodology separates registration-event time (when a public registration record's event occurred), routing-observation time (when public routing state was observed), and validation-snapshot time (when cited public sources were checked together). Any conclusion must identify the clock supporting each observation.
 
 `make verify` is local and non-publishing. `make publish-check` additionally requires final tracked publication decisions and currently fails only because `provider` is `null`.
 

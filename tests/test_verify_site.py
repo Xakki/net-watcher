@@ -55,6 +55,26 @@ class SiteVerifierTests(unittest.TestCase):
     def test_repository_site_passes_local_verification(self):
         verify_site(SITE)
 
+    def test_note_marker_text_meets_wcag_contrast(self):
+        css = (SITE / "styles.css").read_text(encoding="utf-8")
+        colors = dict(re.findall(r"--([a-z-]+): (#[0-9a-f]{6});", css))
+        marker = re.search(r"\.note-marker \{(?P<rules>[^}]*)\}", css)
+        if marker is None:
+            self.fail("note marker rules are missing")
+        color = re.search(r"color: var\(--(?P<token>[a-z-]+)\);", marker.group("rules"))
+        if color is None:
+            self.fail("note marker text color is missing")
+
+        def luminance(hex_color: str) -> float:
+            channels = [int(hex_color[offset : offset + 2], 16) / 255 for offset in (1, 3, 5)]
+            linear = [channel / 12.92 if channel <= 0.04045 else ((channel + 0.055) / 1.055) ** 2.4 for channel in channels]
+            return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2]
+
+        foreground = luminance(colors[color.group("token")])
+        background = luminance(colors["paper"])
+        contrast = (max(foreground, background) + 0.05) / (min(foreground, background) + 0.05)
+        self.assertGreaterEqual(contrast, 4.5)
+
     def test_mobile_hero_fits_scrollbar_reduced_layout_viewport(self):
         css = (SITE / "styles.css").read_text(encoding="utf-8")
         narrow = re.search(r"@media \(max-width: 320px\) \{(?P<rules>.*?)\n\}", css, re.DOTALL)
@@ -93,6 +113,100 @@ class SiteVerifierTests(unittest.TestCase):
             (site / "index.html").write_text(html.replace("styles.css", "https://example.com/a.css"), encoding="utf-8")
             with self.assertRaisesRegex(SiteError, "external"):
                 verify_site(site)
+
+    def test_external_srcset_candidate_is_rejected(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            site = self.copy_site(temp_dir)
+            html = (site / "index.html").read_text(encoding="utf-8")
+            html += '<img src="local.png" srcset="local.png 1x, https://example.com/a.png 2x" alt="">'
+            (site / "index.html").write_text(html, encoding="utf-8")
+            with self.assertRaisesRegex(SiteError, "external"):
+                verify_site(site)
+
+    def test_encoded_protocol_relative_srcset_candidate_is_rejected(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            site = self.copy_site(temp_dir)
+            html = (site / "index.html").read_text(encoding="utf-8")
+            html += '<source srcset="local.png 1x, &#47;&#47;example.com/a.png 2x">'
+            (site / "index.html").write_text(html, encoding="utf-8")
+            with self.assertRaisesRegex(SiteError, "external"):
+                verify_site(site)
+
+    def test_external_base_url_is_rejected(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            site = self.copy_site(temp_dir)
+            html = (site / "index.html").read_text(encoding="utf-8")
+            html = html.replace("<head>", '<head><base href="https://example.com/">')
+            (site / "index.html").write_text(html, encoding="utf-8")
+            with self.assertRaisesRegex(SiteError, "external"):
+                verify_site(site)
+
+    def test_external_network_request_attributes_are_rejected(self):
+        fragments = (
+            '<img attributionsrc="https://example.com/register" alt="">',
+            '<link imagesrcset="local.png 1x, https://example.com/a.png 2x">',
+            '<svg><linearGradient href="https://example.com/gradient.svg"></linearGradient></svg>',
+        )
+        for fragment in fragments:
+            with self.subTest(fragment=fragment), tempfile.TemporaryDirectory() as temp_dir:
+                site = self.copy_site(temp_dir)
+                html = (site / "index.html").read_text(encoding="utf-8")
+                (site / "index.html").write_text(html + fragment, encoding="utf-8")
+                with self.assertRaisesRegex(SiteError, "external"):
+                    verify_site(site)
+
+    def test_local_asset_attributes_are_accepted(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            site = self.copy_site(temp_dir)
+            html = (site / "index.html").read_text(encoding="utf-8")
+            html += '<img src="local.png" srcset="small.png 1x, large.png 2x" alt="">'
+            (site / "index.html").write_text(html, encoding="utf-8")
+            verify_site(site)
+
+    def test_unsafe_asset_scheme_is_rejected(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            site = self.copy_site(temp_dir)
+            html = (site / "index.html").read_text(encoding="utf-8")
+            html += '<img src="javascript:alert(1)" alt="">'
+            (site / "index.html").write_text(html, encoding="utf-8")
+            with self.assertRaisesRegex(SiteError, "unsafe"):
+                verify_site(site)
+
+    def test_external_css_import_forms_are_rejected(self):
+        imports = (
+            '@import "https://example.com/a.css";',
+            "@IMPORT url(//example.com/a.css);",
+            "@import url('https\\3a //example.com/a.css');",
+        )
+        for rule in imports:
+            with self.subTest(rule=rule), tempfile.TemporaryDirectory() as temp_dir:
+                site = self.copy_site(temp_dir)
+                css = (site / "styles.css").read_text(encoding="utf-8")
+                (site / "styles.css").write_text(rule + "\n" + css, encoding="utf-8")
+                with self.assertRaisesRegex(SiteError, "external CSS"):
+                    verify_site(site)
+
+    def test_escaped_external_css_url_is_rejected(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            site = self.copy_site(temp_dir)
+            css = (site / "styles.css").read_text(encoding="utf-8")
+            css += "\n.example { background-image: url(https\\3a //example.com/a.png); }\n"
+            (site / "styles.css").write_text(css, encoding="utf-8")
+            with self.assertRaisesRegex(SiteError, "external CSS"):
+                verify_site(site)
+
+    def test_local_css_import_and_import_text_are_accepted(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            site = self.copy_site(temp_dir)
+            css = (site / "styles.css").read_text(encoding="utf-8")
+            css = (
+                '@import "styles.css";\n'
+                '/* @import "https://example.com/a.css"; */\n'
+                '.note::before { content: "@import url(https://example.com/a.css)"; }\n'
+                + css
+            )
+            (site / "styles.css").write_text(css, encoding="utf-8")
+            verify_site(site)
 
     def test_form_is_rejected(self):
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -531,8 +645,14 @@ class SiteVerifierTests(unittest.TestCase):
         self.assertNotIn("Bash(git push --force:*)", denies)
 
     def test_publication_fails_closed_for_missing_decisions(self):
-        with self.assertRaises(PublicationError) as context:
-            verify_publication(ROOT / "publication.json")
+        with tempfile.TemporaryDirectory() as temp_dir:
+            config = Path(temp_dir) / "publication.json"
+            config.write_text(
+                json.dumps({"provider": "", "correction_endpoint": "https://github.com/Xakki/net-watcher/issues"}),
+                encoding="utf-8",
+            )
+            with self.assertRaises(PublicationError) as context:
+                verify_publication(config)
         self.assertEqual(context.exception.errors, ["publication provider is missing"])
 
     def test_publication_rejects_placeholder_decisions(self):

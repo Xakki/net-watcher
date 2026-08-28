@@ -23,8 +23,10 @@ Evaluate a provider after NW-2 and update the decision record only after approva
 - The exact provider is approved and recorded without a placeholder.
 - No provider access procedure or credential is committed.
 
-**Open questions:**
-- Which provider meets the approved publication requirements?
-
 **Decisions:**
-- Provider selection may proceed in parallel with NW-3.
+- The canonical approved provider is `shared nginx at net.xakki.pro`.
+
+**Completion:**
+- NW-2 is complete.
+- The exact provider is recorded without a placeholder.
+- No provider access procedure or credential is committed.
