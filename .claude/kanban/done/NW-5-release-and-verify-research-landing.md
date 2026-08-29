@@ -24,8 +24,12 @@ Proceed only after NW-3, NW-4, final eligibility, and separate human authorizati
 - DNS, TLS, hosting, and publication actions have separate authorization.
 - Final-origin bytes, headers, and correction link are verified.
 
-**Open questions:**
-- When will the exact release artifact and actions receive authorization?
-
 **Decisions:**
 - Local rehearsal is not release approval.
+
+**Completion:**
+- NW-3 and NW-4 are complete.
+- The exact publication gate passes without overrides.
+- Separate authorization covers hosting, DNS, TLS, and publication for the exact candidate.
+- Final-origin artifact bytes, health, required security headers, and the GitHub Issues correction endpoint are verified over IPv4 and IPv6.
+- The candidate is eligible for reviewer handoff.

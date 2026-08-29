@@ -14,7 +14,7 @@ Complete the draft-freeze and independent-review cards. Independent review cover
 
 ## 4. Publication decision
 
-Complete the provider-selection card. The provider changes from `null` only after exact approval; GitHub Issues remains the correction endpoint.
+The provider-selection card is complete. The canonical approved provider is recorded as `shared nginx at net.xakki.pro`; GitHub Issues remains the correction endpoint.
 
 ## 5. Release
 

@@ -14,4 +14,4 @@ The tracked and served sets are exact manifest allowlists. Local ignored namespa
 
 ## Release posture
 
-GitHub Issues is the correction endpoint. No provider is approved. Exact-artifact independent review and separate authorization for hosting, DNS, TLS, and publication are required.
+GitHub Issues is the correction endpoint. The canonical approved provider is `shared nginx at net.xakki.pro`. Exact-artifact independent review and separate authorization for hosting, DNS, TLS, and publication are required.

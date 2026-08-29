@@ -10,13 +10,13 @@
 Select and approve the exact hosting provider for the static draft.
 
 **Problem:**
-The publication record intentionally has no approved provider.
+The publication record previously had no approved provider.
 
 **Impact:**
-The publication gate must remain closed.
+The publication gate was closed pending provider approval.
 
 **Recommendation:**
-Evaluate a provider after NW-2 and update the decision record only after approval.
+The exact provider is approved and recorded; no further provider-selection work remains.
 
 **Acceptance Criteria:**
 - NW-2 is complete.

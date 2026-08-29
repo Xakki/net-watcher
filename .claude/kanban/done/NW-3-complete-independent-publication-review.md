@@ -35,4 +35,4 @@ Define reviewer scope and review the exact candidate after NW-1 and NW-2.
 
 **Review verdict:**
 - PASS. The required methodology/privacy, security/publication-boundary, and accessibility approvals cover the exact tracked candidate; the clean worktree was independently confirmed before this transition.
-- NW-1 and NW-2 are complete. Publication remains blocked by the unset provider, the publication gate, and separate human authorization.
+- NW-1 and NW-2 are complete. Publication still requires the publication gate and separate human authorization.

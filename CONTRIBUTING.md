@@ -24,4 +24,4 @@ make verify
 make build
 ```
 
-`make publish-check` is expected to fail while the provider is unapproved. Pull requests should remain focused and report commands, not raw execution logs or private evidence.
+`make publish-check` must validate the approved provider and final tracked publication decisions. Pull requests should remain focused and report commands, not raw execution logs or private evidence.
