@@ -66,6 +66,7 @@
     "compose.yaml",
     "docs/architecture.md",
     "docs/decisions.md",
+    "docs/nw6-source-landscape.md",
     "docs/ports.md",
     "docs/publication.md",
     "docs/research-policy.md",
