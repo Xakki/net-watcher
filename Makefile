@@ -19,7 +19,7 @@ build: ## Build the pinned local container image.
 	@NET_WATCHER_BIND=$(BIND) $(COMPOSE) build
 
 test: ## Run all standard-library mutation tests.
-	@python3 -B -m unittest -v tests.test_verify_site tests.test_verify_kanban
+	@python3 -B -m unittest -v tests.test_verify_site tests.test_verify_kanban tests.test_stage2_request
 
 kanban-lint: ## Validate the standalone public Kanban board.
 	@python3 -B tools/verify_kanban.py

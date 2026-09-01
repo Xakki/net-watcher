@@ -76,9 +76,11 @@
     "site/index.html",
     "site/styles.css",
     "tests/__init__.py",
+    "tests/test_stage2_request.py",
     "tests/test_verify_kanban.py",
     "tests/test_verify_site.py",
     "tools/__init__.py",
+    "tools/stage2_request.py",
     "tools/verify_kanban.py",
     "tools/verify_site.py"
   ]
