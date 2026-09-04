@@ -6,7 +6,7 @@ from tools.stage2_request import (
     RequestRefusal,
     RuntimeAuthorization,
     Stage2Request,
-    execute_head,
+    Stage2TransportAdapter,
     plan_request,
 )
 
@@ -56,30 +56,6 @@ class Stage2RequestTests(unittest.TestCase):
         with self.assertRaisesRegex(RequestRefusal, "selector is required"):
             plan_request(request)
 
-    def test_missing_selector_is_refused_before_execution_transport(self):
-        valid_plan = plan_request(self.valid_request())
-        missing_selector_plan = valid_plan.__class__(
-            method=valid_plan.method,
-            host=valid_plan.host,
-            path=valid_plan.path,
-            selector_start=None,
-            selector_end=None,
-            allow_redirects=valid_plan.allow_redirects,
-            read_response_body=valid_plan.read_response_body,
-            timeout_seconds=valid_plan.timeout_seconds,
-            execute=valid_plan.execute,
-            evidence=valid_plan.evidence,
-        )
-        calls = []
-
-        with self.assertRaisesRegex(RequestRefusal, "selector is required"):
-            execute_head(
-                missing_selector_plan,
-                authorization=RuntimeAuthorization("stage2-head-2026-09-02"),
-                transport=lambda **kwargs: calls.append(kwargs),
-            )
-
-        self.assertEqual(calls, [])
 
     def test_selector_must_remain_inside_july_2025(self):
         request = self.valid_request(
@@ -96,37 +72,6 @@ class Stage2RequestTests(unittest.TestCase):
         plan = plan_request(request)
         self.assertEqual(plan.selector_end, request.selector_end)
 
-    def test_execution_revalidates_hand_constructed_plan_before_transport(self):
-        valid_plan = plan_request(self.valid_request())
-        malicious_plan = valid_plan.__class__(
-            method="GET",
-            host="evil.example",
-            path="/other/",
-            selector_start=valid_plan.selector_start,
-            selector_end=valid_plan.selector_end,
-            allow_redirects=True,
-            read_response_body=True,
-            timeout_seconds=1,
-            execute=True,
-            evidence=valid_plan.evidence,
-        )
-        calls = []
-
-        with self.assertRaises(RequestRefusal):
-            execute_head(
-                malicious_plan,
-                authorization=RuntimeAuthorization("stage2-head-2026-09-02"),
-                transport=lambda **kwargs: calls.append(kwargs),
-            )
-
-        self.assertEqual(calls, [])
-
-    def test_execution_requires_explicit_authorization_and_injected_transport(self):
-        plan = plan_request(self.valid_request())
-        with self.assertRaises(RequestRefusal):
-            execute_head(plan)
-        with self.assertRaises(RequestRefusal):
-            execute_head(plan, authorization=RuntimeAuthorization("wrong"), transport=lambda **kwargs: None)
 
     def test_runtime_authorization_expires_at_exact_utc_boundary(self):
         expiry = datetime(2026, 9, 2, 10, 51, 28, tzinfo=timezone.utc)
@@ -141,67 +86,131 @@ class Stage2RequestTests(unittest.TestCase):
                 )
                 self.assertEqual(authorization.valid, expected_valid)
 
-    def test_execute_head_refuses_transport_at_and_after_expiry_boundary(self):
-        plan = plan_request(self.valid_request())
-        expiry = datetime(2026, 9, 2, 10, 51, 28, tzinfo=timezone.utc)
-        calls = []
 
-        def local_transport(**kwargs):
-            calls.append(kwargs)
-            return {"status": 200}
 
-        for current_time, expected_result in (
-            (expiry.replace(second=27), {"status": 200}),
-            (expiry, RequestRefusal),
-            (expiry.replace(second=29), RequestRefusal),
-        ):
-            with self.subTest(current_time=current_time):
-                calls.clear()
-                authorization = RuntimeAuthorization(
-                    "stage2-head-2026-09-02", clock=lambda: current_time
-                )
-                if expected_result is RequestRefusal:
-                    with self.assertRaises(RequestRefusal):
-                        execute_head(
-                            plan,
-                            authorization=authorization,
-                            transport=local_transport,
-                        )
-                    self.assertEqual(calls, [])
-                else:
-                    self.assertEqual(
-                        execute_head(
-                            plan,
-                            authorization=authorization,
-                            transport=local_transport,
-                        ),
-                        expected_result,
-                    )
-                    self.assertEqual(len(calls), 1)
+    def test_adapter_passes_canonical_https_head_policy_to_local_fake(self):
+        from tools.stage2_request import Stage2TransportAdapter
 
-    def test_explicit_transport_receives_head_only_no_redirect_no_body(self):
         plan = plan_request(self.valid_request())
         calls = []
 
-        def local_transport(**kwargs):
+        def local_fake(**kwargs):
             calls.append(kwargs)
-            return {"status": 200, "content_length": 0}
+            return {"status": 204}
 
-        result = execute_head(
+        outcome = Stage2TransportAdapter(local_fake).execute(
             plan,
-            authorization=RuntimeAuthorization("stage2-head-2026-09-02"),
-            transport=local_transport,
+            authorization=RuntimeAuthorization(
+                "stage2-head-2026-09-02",
+                clock=lambda: datetime(2026, 9, 2, 10, 51, 27, tzinfo=timezone.utc),
+            ),
         )
 
-        self.assertEqual(result, {"status": 200, "content_length": 0})
+        self.assertEqual(outcome, "success")
         self.assertEqual(calls, [{
+            "scheme": "https",
             "method": "HEAD",
             "host": "www.ris.ripe.net",
             "path": "/dumps-per-rrc-rest/prototype/",
+            "selector_start": datetime(2025, 7, 1, tzinfo=timezone.utc),
+            "selector_end": datetime(2025, 7, 31, tzinfo=timezone.utc),
             "allow_redirects": False,
+            "proxy": None,
+            "cookies": None,
+            "automatic_compression": False,
             "read_response_body": False,
             "timeout_seconds": 1800,
         }])
+
+    def test_adapter_rejects_unexpected_fake_result_without_exposing_details(self):
+        from tools.stage2_request import Stage2TransportAdapter
+
+        plan = plan_request(self.valid_request())
+
+        def local_fake(**kwargs):
+            return {"status": 200, "body": "secret-payload", "headers": {"X": "secret"}}
+
+        with self.assertRaisesRegex(RequestRefusal, "unexpected transport result"):
+            Stage2TransportAdapter(local_fake).execute(
+                plan,
+                authorization=RuntimeAuthorization(
+                "stage2-head-2026-09-02",
+                clock=lambda: datetime(2026, 9, 2, 10, 51, 27, tzinfo=timezone.utc),
+            ),
+            )
+
+    def test_adapter_maps_transport_failures_to_finite_bounded_outcome(self):
+        from tools.stage2_request import Stage2TransportAdapter
+
+        plan = plan_request(self.valid_request())
+
+        def local_fake(**kwargs):
+            raise RuntimeError("secret host and payload")
+
+        self.assertEqual(
+            Stage2TransportAdapter(local_fake).execute(
+                plan,
+                authorization=RuntimeAuthorization(
+                "stage2-head-2026-09-02",
+                clock=lambda: datetime(2026, 9, 2, 10, 51, 27, tzinfo=timezone.utc),
+            ),
+            ),
+            "transport-failure",
+        )
+
+    def test_adapter_rejects_mapping_inspection_exception_without_raw_details(self):
+        from collections.abc import Mapping
+
+        plan = plan_request(self.valid_request())
+
+        class HostileResult(Mapping):
+            def __getitem__(self, key):
+                raise RuntimeError("SECRET payload detail")
+
+            def __iter__(self):
+                raise RuntimeError("SECRET mapping detail")
+
+            def __len__(self):
+                raise RuntimeError("SECRET length detail")
+
+        with self.assertRaises(RequestRefusal) as raised:
+            Stage2TransportAdapter(lambda **kwargs: HostileResult()).execute(
+                plan,
+                authorization=RuntimeAuthorization(
+                    "stage2-head-2026-09-02",
+                    clock=lambda: datetime(2026, 9, 2, 10, 51, 27, tzinfo=timezone.utc),
+                ),
+            )
+
+        self.assertEqual(str(raised.exception), "unexpected transport result")
+        self.assertNotIn("SECRET", str(raised.exception))
+
+    def test_adapter_rejects_hand_built_execute_true_plan_before_transport(self):
+        valid_plan = plan_request(self.valid_request())
+        executable_plan = valid_plan.__class__(
+            method=valid_plan.method,
+            host=valid_plan.host,
+            path=valid_plan.path,
+            selector_start=valid_plan.selector_start,
+            selector_end=valid_plan.selector_end,
+            allow_redirects=valid_plan.allow_redirects,
+            read_response_body=valid_plan.read_response_body,
+            timeout_seconds=valid_plan.timeout_seconds,
+            execute=True,
+            evidence=valid_plan.evidence,
+        )
+        calls = []
+
+        with self.assertRaisesRegex(RequestRefusal, "refused-by-default"):
+            Stage2TransportAdapter(lambda **kwargs: calls.append(kwargs)).execute(
+                executable_plan,
+                authorization=RuntimeAuthorization(
+                    "stage2-head-2026-09-02",
+                    clock=lambda: datetime(2026, 9, 2, 10, 51, 27, tzinfo=timezone.utc),
+                ),
+            )
+
+        self.assertEqual(calls, [])
 
 
 if __name__ == "__main__":

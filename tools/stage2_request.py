@@ -117,35 +117,81 @@ def plan_request(request: Stage2Request) -> RequestPlan:
     )
 
 
-def execute_head(
-    plan: RequestPlan,
-    *,
-    authorization: RuntimeAuthorization | None = None,
-    transport: Callable[..., Any] | None = None,
-) -> Any:
-    """Invoke only an explicitly injected transport; never create one implicitly."""
-    if authorization is None or not authorization.valid:
-        raise RequestRefusal("explicit runtime authorization is required")
-    if transport is None or not callable(transport):
-        raise RequestRefusal("explicit transport is required")
-    _validate(
-        Stage2Request(
-            method=plan.method,
-            host=plan.host,
-            path=plan.path,
-            selector_start=plan.selector_start,
-            selector_end=plan.selector_end,
-            allow_redirects=plan.allow_redirects,
-            read_response_body=plan.read_response_body,
-        )
-    )
-    if plan.timeout_seconds != MAX_WALL_CLOCK_SECONDS:
-        raise RequestRefusal("timeout must be 1800 seconds")
-    return transport(
-        method=plan.method,
-        host=plan.host,
-        path=plan.path,
-        allow_redirects=False,
-        read_response_body=False,
-        timeout_seconds=MAX_WALL_CLOCK_SECONDS,
-    )
+class Stage2TransportAdapter:
+    """Fail-closed boundary for an explicitly supplied local transport."""
+
+    def __init__(self, transport: Callable[..., Any]):
+        if not callable(transport):
+            raise RequestRefusal("explicit transport is required")
+        self._transport = transport
+
+    def execute(
+        self,
+        plan: RequestPlan,
+        *,
+        authorization: RuntimeAuthorization | None = None,
+    ) -> str:
+        if not isinstance(plan, RequestPlan):
+            raise RequestRefusal("validated request plan is required")
+        if plan.execute:
+            raise RequestRefusal("execution must remain refused-by-default")
+        if authorization is None or not authorization.valid:
+            raise RequestRefusal("explicit runtime authorization is required")
+        try:
+            _validate(
+                Stage2Request(
+                    method=plan.method,
+                    host=plan.host,
+                    path=plan.path,
+                    selector_start=plan.selector_start,
+                    selector_end=plan.selector_end,
+                    allow_redirects=plan.allow_redirects,
+                    read_response_body=plan.read_response_body,
+                )
+            )
+            if plan.timeout_seconds != MAX_WALL_CLOCK_SECONDS:
+                raise RequestRefusal("timeout must be 1800 seconds")
+        except RequestRefusal:
+            raise
+        except Exception as error:
+            raise RequestRefusal("invalid request plan") from error
+
+        try:
+            transport_result = self._transport(
+                scheme="https",
+                method=ALLOWED_METHOD,
+                host=ALLOWED_HOST,
+                path=ALLOWED_PATH,
+                selector_start=plan.selector_start,
+                selector_end=plan.selector_end,
+                allow_redirects=False,
+                proxy=None,
+                cookies=None,
+                automatic_compression=False,
+                read_response_body=False,
+                timeout_seconds=MAX_WALL_CLOCK_SECONDS,
+            )
+        except Exception:
+            return "transport-failure"
+
+        try:
+            if not isinstance(transport_result, Mapping) or set(transport_result) != {"status"}:
+                raise RequestRefusal("unexpected transport result")
+            status = transport_result["status"]
+            if isinstance(status, bool) or not isinstance(status, int):
+                raise RequestRefusal("unexpected transport result")
+            if 200 <= status < 300:
+                return "success"
+            if status == 404:
+                return "not-found"
+            if 300 <= status < 400:
+                return "redirect-rejected"
+            if 400 <= status < 500:
+                return "remote-rejected"
+            if 500 <= status < 600:
+                return "transport-failure"
+            raise RequestRefusal("unexpected transport result")
+        except RequestRefusal:
+            raise
+        except Exception:
+            raise RequestRefusal("unexpected transport result")
