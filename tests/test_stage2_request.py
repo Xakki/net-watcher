@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 
 from tools.stage2_request import (
     PROPOSED_EXPIRY,
+    RUNTIME_CAPABILITY,
     RequestRefusal,
     RuntimeAuthorization,
     Stage2Request,
@@ -73,16 +74,29 @@ class Stage2RequestTests(unittest.TestCase):
         self.assertEqual(plan.selector_end, request.selector_end)
 
 
+    def test_runtime_configuration_matches_user_selected_window_and_capability(self):
+        self.assertEqual(PROPOSED_EXPIRY, "2026-09-05T07:03:08Z")
+        self.assertEqual(RUNTIME_CAPABILITY, "stage2-head-2026-09-05")
+
+    def test_runtime_authorization_rejects_at_and_after_user_selected_expiry(self):
+        expiry = datetime(2026, 9, 5, 7, 3, 8, tzinfo=timezone.utc)
+        for current_time in (expiry, expiry.replace(second=9)):
+            with self.subTest(current_time=current_time):
+                authorization = RuntimeAuthorization(
+                    RUNTIME_CAPABILITY, clock=lambda: current_time
+                )
+                self.assertFalse(authorization.valid)
+
     def test_runtime_authorization_expires_at_exact_utc_boundary(self):
-        expiry = datetime(2026, 9, 2, 10, 51, 28, tzinfo=timezone.utc)
+        expiry = datetime(2026, 9, 5, 7, 3, 8, tzinfo=timezone.utc)
         for current_time, expected_valid in (
-            (expiry.replace(second=27), True),
+            (expiry.replace(second=7), True),
             (expiry, False),
-            (expiry.replace(second=29), False),
+            (expiry.replace(second=9), False),
         ):
             with self.subTest(current_time=current_time):
                 authorization = RuntimeAuthorization(
-                    "stage2-head-2026-09-02", clock=lambda: current_time
+                    RUNTIME_CAPABILITY, clock=lambda: current_time
                 )
                 self.assertEqual(authorization.valid, expected_valid)
 
@@ -101,7 +115,7 @@ class Stage2RequestTests(unittest.TestCase):
         outcome = Stage2TransportAdapter(local_fake).execute(
             plan,
             authorization=RuntimeAuthorization(
-                "stage2-head-2026-09-02",
+                RUNTIME_CAPABILITY,
                 clock=lambda: datetime(2026, 9, 2, 10, 51, 27, tzinfo=timezone.utc),
             ),
         )
@@ -134,7 +148,7 @@ class Stage2RequestTests(unittest.TestCase):
             Stage2TransportAdapter(local_fake).execute(
                 plan,
                 authorization=RuntimeAuthorization(
-                "stage2-head-2026-09-02",
+                RUNTIME_CAPABILITY,
                 clock=lambda: datetime(2026, 9, 2, 10, 51, 27, tzinfo=timezone.utc),
             ),
             )
@@ -151,7 +165,7 @@ class Stage2RequestTests(unittest.TestCase):
             Stage2TransportAdapter(local_fake).execute(
                 plan,
                 authorization=RuntimeAuthorization(
-                "stage2-head-2026-09-02",
+                RUNTIME_CAPABILITY,
                 clock=lambda: datetime(2026, 9, 2, 10, 51, 27, tzinfo=timezone.utc),
             ),
             ),
@@ -177,7 +191,7 @@ class Stage2RequestTests(unittest.TestCase):
             Stage2TransportAdapter(lambda **kwargs: HostileResult()).execute(
                 plan,
                 authorization=RuntimeAuthorization(
-                    "stage2-head-2026-09-02",
+                    RUNTIME_CAPABILITY,
                     clock=lambda: datetime(2026, 9, 2, 10, 51, 27, tzinfo=timezone.utc),
                 ),
             )
@@ -205,7 +219,7 @@ class Stage2RequestTests(unittest.TestCase):
             Stage2TransportAdapter(lambda **kwargs: calls.append(kwargs)).execute(
                 executable_plan,
                 authorization=RuntimeAuthorization(
-                    "stage2-head-2026-09-02",
+                    RUNTIME_CAPABILITY,
                     clock=lambda: datetime(2026, 9, 2, 10, 51, 27, tzinfo=timezone.utc),
                 ),
             )

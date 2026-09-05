@@ -14,9 +14,9 @@ ALLOWED_HOST = "www.ris.ripe.net"
 ALLOWED_PATH = "/dumps-per-rrc-rest/prototype/"
 MAX_SELECTOR_HOURS = 744
 MAX_WALL_CLOCK_SECONDS = 30 * 60
-PROPOSED_EXPIRY = "2026-09-02T10:51:28Z"
+PROPOSED_EXPIRY = "2026-09-05T07:03:08Z"
 REVIEWER_ROLE = "independent-review"
-_RUNTIME_CAPABILITY = "stage2-head-2026-09-02"
+RUNTIME_CAPABILITY = "stage2-head-2026-09-05"
 
 
 class RequestRefusal(ValueError):
@@ -52,7 +52,7 @@ class RuntimeAuthorization:
     """Explicit, short-lived local capability required by the transport boundary."""
 
     def __init__(self, capability: str, *, clock: Callable[[], datetime] | None = None):
-        self._valid = capability == _RUNTIME_CAPABILITY
+        self._valid = capability == RUNTIME_CAPABILITY
         self._clock = clock or (lambda: datetime.now(timezone.utc))
 
     @property
