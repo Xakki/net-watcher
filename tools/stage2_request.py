@@ -14,9 +14,9 @@ ALLOWED_HOST = "www.ris.ripe.net"
 ALLOWED_PATH = "/dumps-per-rrc-rest/prototype/"
 MAX_SELECTOR_HOURS = 744
 MAX_WALL_CLOCK_SECONDS = 30 * 60
-PROPOSED_EXPIRY = "2026-09-05T07:03:08Z"
+PROPOSED_EXPIRY = "2026-09-05T10:17:20Z"
 REVIEWER_ROLE = "independent-review"
-RUNTIME_CAPABILITY = "stage2-head-2026-09-05"
+RUNTIME_CAPABILITY = "stage2-head-2026-09-05-60m"
 
 
 class RequestRefusal(ValueError):

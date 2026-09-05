@@ -75,12 +75,12 @@ class Stage2RequestTests(unittest.TestCase):
 
 
     def test_runtime_configuration_matches_user_selected_window_and_capability(self):
-        self.assertEqual(PROPOSED_EXPIRY, "2026-09-05T07:03:08Z")
-        self.assertEqual(RUNTIME_CAPABILITY, "stage2-head-2026-09-05")
+        self.assertEqual(PROPOSED_EXPIRY, "2026-09-05T10:17:20Z")
+        self.assertEqual(RUNTIME_CAPABILITY, "stage2-head-2026-09-05-60m")
 
     def test_runtime_authorization_rejects_at_and_after_user_selected_expiry(self):
-        expiry = datetime(2026, 9, 5, 7, 3, 8, tzinfo=timezone.utc)
-        for current_time in (expiry, expiry.replace(second=9)):
+        expiry = datetime(2026, 9, 5, 10, 17, 20, tzinfo=timezone.utc)
+        for current_time in (expiry, expiry.replace(second=21)):
             with self.subTest(current_time=current_time):
                 authorization = RuntimeAuthorization(
                     RUNTIME_CAPABILITY, clock=lambda: current_time
@@ -88,11 +88,11 @@ class Stage2RequestTests(unittest.TestCase):
                 self.assertFalse(authorization.valid)
 
     def test_runtime_authorization_expires_at_exact_utc_boundary(self):
-        expiry = datetime(2026, 9, 5, 7, 3, 8, tzinfo=timezone.utc)
+        expiry = datetime(2026, 9, 5, 10, 17, 20, tzinfo=timezone.utc)
         for current_time, expected_valid in (
-            (expiry.replace(second=7), True),
+            (expiry.replace(second=19), True),
             (expiry, False),
-            (expiry.replace(second=9), False),
+            (expiry.replace(second=21), False),
         ):
             with self.subTest(current_time=current_time):
                 authorization = RuntimeAuthorization(
