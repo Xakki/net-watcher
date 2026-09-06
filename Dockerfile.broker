@@ -1,0 +1,8 @@
+# syntax=docker/dockerfile:1.7
+FROM python:3.13.7-alpine3.22
+WORKDIR /app
+COPY tools /app/tools
+COPY broker-entrypoint.py /app/broker-entrypoint.py
+RUN addgroup -S -g 1000 broker && adduser -S -D -u 1000 -G broker broker
+USER 1000:1000
+ENTRYPOINT ["python", "/app/broker-entrypoint.py"]

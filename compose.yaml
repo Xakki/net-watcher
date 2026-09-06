@@ -33,6 +33,114 @@ services:
     networks:
       - isolated
 
+  broker:
+    profiles: [broker]
+    build:
+      context: .
+      dockerfile: Dockerfile.broker
+    init: true
+    restart: "no"
+    read_only: true
+    user: "1000:1000"
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:size=8m,mode=1777
+    environment:
+      BROKER_LISTEN_ADDRESS: broker
+      BROKER_LISTEN_PORT: "9443"
+      BROKER_DATABASE_PATH: /var/lib/broker/broker.sqlite3
+      BROKER_CA_PATH: /run/secrets/broker_ca
+      BROKER_CERTIFICATE_PATH: /run/secrets/broker_certificate
+      BROKER_PRIVATE_KEY_PATH: /run/secrets/broker_private_key
+      BROKER_VERIFIER_PATH: /run/secrets/approval_verifier
+      BROKER_CLIENT_IDENTITY: net-watcher-client
+    secrets:
+      - source: broker_ca
+        target: broker_ca
+        uid: "1000"
+        gid: "1000"
+        mode: 0400
+      - source: broker_certificate
+        target: broker_certificate
+        uid: "1000"
+        gid: "1000"
+        mode: 0400
+      - source: broker_private_key
+        target: broker_private_key
+        uid: "1000"
+        gid: "1000"
+        mode: 0400
+      - source: approval_verifier
+        target: approval_verifier
+        uid: "1000"
+        gid: "1000"
+        mode: 0400
+    volumes:
+      - broker_data:/var/lib/broker
+    networks:
+      - broker_internal
+
+  client:
+    profiles: [broker]
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    init: true
+    restart: "no"
+    read_only: true
+    user: "1000:1000"
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:size=8m,mode=1777
+    secrets:
+      - source: client_ca
+        target: client_ca
+        uid: "1000"
+        gid: "1000"
+        mode: 0400
+      - source: client_certificate
+        target: client_certificate
+        uid: "1000"
+        gid: "1000"
+        mode: 0400
+      - source: client_private_key
+        target: client_private_key
+        uid: "1000"
+        gid: "1000"
+        mode: 0400
+    networks:
+      - broker_internal
+
+volumes:
+  broker_data:
+
+secrets:
+  broker_ca:
+    external: true
+    name: net-watcher-broker-ca
+  broker_certificate:
+    external: true
+    name: net-watcher-broker-certificate
+  broker_private_key:
+    external: true
+    name: net-watcher-broker-private-key
+  approval_verifier:
+    external: true
+    name: net-watcher-approval-verifier
+  client_ca:
+    external: true
+    name: net-watcher-client-ca
+  client_certificate:
+    external: true
+    name: net-watcher-client-certificate
+  client_private_key:
+    external: true
+    name: net-watcher-client-private-key
+
 networks:
   isolated:
     name: net-watcher-isolated
@@ -40,3 +148,7 @@ networks:
     attachable: false
     driver_opts:
       com.docker.network.bridge.enable_ip_masquerade: "false"
+  broker_internal:
+    name: net-watcher-broker-internal
+    internal: true
+    attachable: false
