@@ -1,6 +1,6 @@
 # Container-Native Broker Work Plan
 
-> **Status:** Untracked planning artifact. Tracking or manifest updates require separate authorization.
+> **Status:** This is a tracked planning artifact. Broker work is deferred by [docs/development-strategy.md](docs/development-strategy.md). No implementation or deployment is authorized by this plan.
 
 ## Goal
 
