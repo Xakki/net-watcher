@@ -695,6 +695,17 @@ class SiteVerifierTests(unittest.TestCase):
         self.assertFalse((ROOT / "CLAUDE.md").exists())
         self.assertTrue((ROOT / "AGENTS.md").is_file())
 
+    def test_nginx_serves_markdown_as_inline_plain_text(self):
+        nginx = (ROOT / "nginx.conf").read_text(encoding="utf-8")
+        match = re.search(r"location\s+~\*\s+\\\.md\$\s*\{(?P<body>[^}]*)\}", nginx)
+        if match is None:
+            self.fail("nginx.conf is missing a location block for served *.md files")
+        body = match.group("body")
+        self.assertIn("default_type text/plain;", body)
+        self.assertIn("charset utf-8;", body)
+        self.assertNotIn("text/markdown", body)
+        self.assertNotIn("add_header", body, "add_header in this location would drop inherited server headers")
+
     def test_dockerfile_clears_base_html_before_allowlisted_copy(self):
         text = (ROOT / "Dockerfile").read_text(encoding="utf-8")
         self.assertLess(text.index("rm -rf /usr/share/nginx/html"), text.index("COPY --chown=101:101 site/index.html"))

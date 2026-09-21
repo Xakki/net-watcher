@@ -46,6 +46,7 @@ smoke: ## Check health, content, and security headers locally.
 	@curl --fail --silent --show-error '$(URL)/' | grep -q 'Net Watcher'
 	@curl --fail --silent --show-error --head '$(URL)/' | grep -qi '^Content-Security-Policy:'
 	@curl --fail --silent --show-error --head '$(URL)/' | grep -qi '^X-Content-Type-Options: nosniff'
+	@curl --fail --silent --show-error --head '$(URL)/audit.md' | grep -qi '^Content-Type: text/plain; charset=utf-8'
 	@printf 'Smoke checks passed at %s.\n' '$(URL)'
 
 verify: config test lint ## Run all local non-publication checks.
