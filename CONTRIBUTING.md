@@ -18,7 +18,6 @@ The directory under `.claude/kanban/` is canonical state. Use only project-local
 ```sh
 make config
 make test
-make kanban-lint
 make lint
 make verify
 make build

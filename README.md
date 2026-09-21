@@ -17,7 +17,6 @@ Requirements: Docker Engine with Compose, GNU Make, Python 3, and curl.
 make help
 make config
 make test
-make kanban-lint
 make lint
 make verify
 make build

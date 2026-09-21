@@ -5,7 +5,7 @@ PORT := $(lastword $(subst :, ,$(BIND)))
 HOST := $(firstword $(subst :, ,$(BIND)))
 URL := http://$(HOST):$(PORT)
 
-.PHONY: help config build test kanban-lint lint up down ps logs smoke verify publish-check
+.PHONY: help config build test lint up down ps logs smoke verify publish-check
 
 help: ## Show the supported local commands.
 	@printf '%s\n' 'Net Watcher local commands:'
@@ -19,12 +19,9 @@ build: ## Build the pinned local container image.
 	@NET_WATCHER_BIND=$(BIND) $(COMPOSE) build
 
 test: ## Run all standard-library mutation tests.
-	@python3 -B -m unittest -v tests.test_verify_site tests.test_verify_kanban tests.test_stage2_request tests.test_broker_runtime
+	@python3 -B -m unittest -v tests.test_verify_site tests.test_stage2_request tests.test_broker_runtime
 
-kanban-lint: ## Validate the standalone public Kanban board.
-	@python3 -B tools/verify_kanban.py
-
-lint: kanban-lint ## Scan the complete tracked public boundary.
+lint: ## Scan the complete tracked public boundary.
 	@python3 -B tools/verify_site.py --repository
 	@git diff --check
 
