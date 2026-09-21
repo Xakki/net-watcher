@@ -27,9 +27,15 @@ Deliver an in-repo review kit. Explicitly exclude inviting or contacting reviewe
 - An owner decision-record template exists covering revise / pause / prepare another synthetic case.
 - The kit contains no invitation, contact, session-running, or data-collection mechanism.
 
-**Open questions:**
-- Where should the kit live: `docs/` or the served site? Default recommendation is `docs/`, not served.
-- Should the kit be served publicly at all, or stay a repository-only reference the owner hands to reviewers directly?
-
 **Decisions:**
 - Inviting or contacting reviewers, running review sessions, and collecting any data are explicitly out of scope for agent work; the owner performs those separately.
+- The kit lives in `docs/` as a tracked repository reference and is not served by the site; the served set and site build are unchanged.
+
+**Completion:**
+- A reviewer brief exists that uses only the public lesson artifact.
+- The brief states the three Phase 2 tasks: identify the tempting inference, name the missing evidence, and explain why the conclusion remains observational.
+- A scoring rubric exists for the three tasks, with descriptors tied to the lesson content.
+- A consent / no-data statement exists: no visitor analytics, no personal research data recorded, no unsolicited outreach, no accounts, no recordings.
+- An owner decision-record template exists covering revise / pause / prepare another synthetic case, using aggregate, non-identifying tallies and the strategy's stop rules.
+- The kit contains no invitation, contact, session-running, or data-collection mechanism, and states that a filled decision record is private review material that must not be committed to this repository.
+- The kit is tracked in the publication boundary and is awaiting independent review before this card advances further.
