@@ -20,8 +20,10 @@ from tools.verify_site import (
     read_bounded,
     verify_publication,
     verify_publishable_repository,
+    verify_publishable_site,
     verify_repository,
     verify_site,
+    verify_markdown,
 )
 
 
@@ -54,6 +56,56 @@ class SiteVerifierTests(unittest.TestCase):
 
     def test_repository_site_passes_local_verification(self):
         verify_site(SITE)
+
+    def test_synthetic_case_teaches_clock_separation_with_self_check(self):
+        html = (SITE / "index.html").read_text(encoding="utf-8").casefold()
+        for required in (
+            'id="synthetic-case"',
+            "synthetic educational case",
+            "does not establish causation",
+            "three separate clocks",
+            "what would reduce uncertainty",
+            "self-check",
+            "worked answer",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, html)
+
+    def test_development_strategy_is_tracked_and_keeps_live_work_deferred(self):
+        strategy_path = ROOT / "docs/development-strategy.md"
+        strategy = strategy_path.read_text(encoding="utf-8")
+        boundary = json.loads((ROOT / "publication-boundary.json").read_text(encoding="utf-8"))
+        self.assertIn("docs/development-strategy.md", boundary["tracked_files"])
+        for required in (
+            "researchers and teachers",
+            "synthetic-only",
+            "decision gate",
+            "validation without analytics",
+            "stop rules",
+            "live collection",
+            "broker work",
+        ):
+            with self.subTest(required=required):
+                self.assertIn(required, strategy.casefold())
+
+    def test_future_audit_markdown_is_validated_without_becoming_served(self):
+        verify_markdown((SITE / "audit.md").read_text(encoding="utf-8"))
+        boundary = json.loads((ROOT / "publication-boundary.json").read_text(encoding="utf-8"))
+        self.assertIn("site/audit.md", boundary["tracked_files"])
+        self.assertIn("site/audit.md", boundary["served_files"])
+
+    def test_markdown_script_form_and_unsafe_urls_are_rejected(self):
+        for payload, expected in (
+            ("<script>alert(1)</script>", "script"),
+            ("<form action=\"/submit\"></form>", "form"),
+            ("[bad](javascript:alert(1))", "unsafe URL"),
+            ("![tracking](https://example.com/pixel.gif)", "external asset"),
+            ('<img src="https://example.com/pixel.gif" alt="tracking">', "external asset"),
+            ('<a href="javascript:alert(1)">bad</a>', "unsafe URL"),
+        ):
+            with self.subTest(payload=payload):
+                with self.assertRaisesRegex(SiteError, expected):
+                    verify_markdown(payload)
 
     def test_note_marker_text_meets_wcag_contrast(self):
         css = (SITE / "styles.css").read_text(encoding="utf-8")
@@ -600,6 +652,25 @@ class SiteVerifierTests(unittest.TestCase):
             with self.assertRaisesRegex(SiteError, "clean"):
                 verify_publishable_repository(root)
 
+    def test_immutable_publication_path_rejects_unsafe_served_markdown(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self.copy_repository(root)
+            audit = root / "site/audit.md"
+            audit.write_text(audit.read_text(encoding="utf-8") + "\n<script>alert(1)</script>\n", encoding="utf-8")
+            self.init_repository(root)
+            reader = verify_publishable_repository(root)
+            with self.assertRaisesRegex(SiteError, "script"):
+                verify_publishable_site(reader)
+
+    def test_immutable_publication_path_accepts_safe_served_markdown(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            self.copy_repository(root)
+            self.init_repository(root)
+            reader = verify_publishable_repository(root)
+            verify_publishable_site(reader)
+
     def test_head_symlink_mode_is_rejected(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
@@ -620,12 +691,14 @@ class SiteVerifierTests(unittest.TestCase):
             with self.assertRaisesRegex(SiteError, "extra"):
                 verify_repository(root, source="head", require_clean=False)
 
-    def test_claude_instructions_import_agents_policy(self):
-        self.assertEqual((ROOT / "CLAUDE.md").read_text(encoding="utf-8"), "# Claude Code instructions\n\n@AGENTS.md\n")
+    def test_claude_instructions_file_absent_agents_is_sole_policy(self):
+        self.assertFalse((ROOT / "CLAUDE.md").exists())
+        self.assertTrue((ROOT / "AGENTS.md").is_file())
 
-    def test_dockerfile_clears_base_html_before_copy(self):
+    def test_dockerfile_clears_base_html_before_allowlisted_copy(self):
         text = (ROOT / "Dockerfile").read_text(encoding="utf-8")
-        self.assertLess(text.index("rm -rf /usr/share/nginx/html"), text.index("COPY --chown=101:101 site/"))
+        self.assertLess(text.index("rm -rf /usr/share/nginx/html"), text.index("COPY --chown=101:101 site/index.html"))
+        self.assertIn("COPY --chown=101:101 site/audit.md /usr/share/nginx/html/audit.md", text)
 
     def test_claude_settings_cover_local_reads_and_push_forms(self):
         settings = json.loads((ROOT / ".claude/settings.json").read_text(encoding="utf-8"))

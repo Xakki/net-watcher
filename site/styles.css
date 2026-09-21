@@ -44,14 +44,14 @@ h1 { margin: 1rem 0 1.5rem; font: 900 clamp(3.7rem, 8vw, 8.6rem)/.77 var(--displ
 .clock-field::before { content: ""; position: absolute; inset: 6% 8%; background: radial-gradient(circle at center, rgba(75, 142, 155, .22), transparent 66%); border-radius: 50%; }
 .orbit { position: absolute; border: 1px solid var(--ink); border-radius: 50%; aspect-ratio: 1; }
 .orbit::before { content: ""; position: absolute; inset: 50% auto auto 50%; width: 8px; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 50%; background: var(--signal); }
-.orbit-fast { width: 37%; right: 6%; top: 3%; background: rgba(249, 251, 250, .72); }
+.orbit-fast { width: 37%; right: 6%; top: -10%; background: rgba(249, 251, 250, .72); }
 .orbit-medium { width: 57%; left: 2%; top: 24%; border-color: var(--water); border-width: 2px; background: rgba(237, 242, 241, .78); }
-.orbit-slow { width: 68%; right: 0; bottom: 0; border-style: dashed; }
+.orbit-slow { width: 68%; right: 0; bottom: 98px; border-style: dashed; }
 .hand { position: absolute; left: 50%; top: 50%; width: 38%; height: 2px; background: var(--signal); transform-origin: left center; transform: rotate(-52deg); }
 .orbit-medium .hand { width: 31%; transform: rotate(28deg); background: var(--water); }
 .orbit-slow .hand { width: 42%; transform: rotate(142deg); }
-.clock-label { position: absolute; left: 50%; top: 12%; transform: translateX(-50%); font: 900 clamp(1.3rem, 3vw, 2.7rem)/1 var(--display); text-transform: uppercase; }
-.clock-detail { position: absolute; left: 50%; top: 25%; transform: translateX(-50%); white-space: nowrap; color: var(--muted); font: .65rem/1.2 var(--utility); text-transform: uppercase; }
+.clock-label { position: absolute; left: -3%; top: -50px; transform: translateX(-50%); font: 900 clamp(1.3rem, 3vw, 2.7rem)/1 var(--display); text-transform: uppercase; }
+.clock-detail { position: absolute; left: 50%; top: 10px; transform: translateX(-50%); white-space: nowrap; color: var(--muted); font: .60rem/1.2 var(--utility); text-transform: uppercase; }
 .clock-field figcaption { position: absolute; right: 0; bottom: -2.2rem; max-width: 27rem; font: .7rem/1.5 var(--utility); color: var(--muted); }
 
 .status-band { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; padding: 2.5rem; color: var(--white); background: var(--ink); }
@@ -78,6 +78,23 @@ li { margin-bottom: .55rem; }
 .interpretation blockquote p { font-size: clamp(1.5rem, 3vw, 2.35rem); line-height: 1.22; }
 .interpretation blockquote + p { margin-top: 2rem; color: var(--muted); }
 
+.case-study { margin: 3rem 0 0; padding: clamp(2rem, 6vw, 5rem); border: 2px solid var(--ink); background: var(--white); }
+.case-study > h2 { max-width: 850px; margin: .7rem 0 1rem; font: 800 clamp(2.2rem, 5vw, 4.7rem)/.92 var(--display); letter-spacing: -.04em; text-transform: uppercase; }
+.case-lede { max-width: 48rem; font-size: clamp(1.15rem, 2vw, 1.45rem); }
+.case-grid, .case-columns { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(2rem, 5vw, 5rem); margin-top: 3rem; }
+.case-study h3 { margin: 0 0 .6rem; font: 800 1.2rem/1 var(--display); text-transform: uppercase; }
+.case-study .clock-timeline dl { margin: 0; }
+.case-study .clock-timeline dl > div { padding: .8rem 0; border-top: 1px solid var(--line); }
+.case-study .clock-timeline dt { font: 800 1.05rem/1.2 var(--display); text-transform: uppercase; }
+.case-study .clock-timeline dt span { display: block; margin-top: .25rem; color: var(--muted); font: .72rem/1.4 var(--utility); text-transform: none; }
+.case-study .clock-timeline dd { margin: .35rem 0 0; color: var(--muted); }
+.case-study blockquote { margin: 0 0 2rem; padding: 1rem 1.2rem; border-left: 5px solid var(--signal); background: var(--paper); }
+.case-study blockquote p { margin: 0; }
+.case-study ol { padding-left: 1.4rem; }
+.case-study details { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--line); }
+.case-study summary { cursor: pointer; font: 800 1.2rem/1 var(--display); text-transform: uppercase; }
+.case-study details p { max-width: 55rem; }
+
 .corrections { padding: 7rem 0; text-align: center; }
 .corrections p:not(.section-label) { max-width: 580px; margin: 1.5rem auto; }
 .text-link { display: inline-block; padding: .8rem 0; border-bottom: 2px solid var(--signal); font: 700 .8rem/1 var(--utility); text-decoration: none; text-transform: uppercase; }
@@ -89,7 +106,7 @@ footer p { margin: 0; }
   .hero { grid-template-columns: 1fr; min-height: auto; padding-top: 3.5rem; }
   h1 { font-size: clamp(2.5rem, 14.5vw, 6rem); }
   .clock-field { min-height: 450px; }
-  .status-band, .method-grid, .interpretation, .boundary-columns { grid-template-columns: 1fr; }
+  .status-band, .method-grid, .interpretation, .boundary-columns, .case-grid, .case-columns { grid-template-columns: 1fr; }
   .method-grid, .interpretation { padding: 5rem 0; }
   .boundary { margin-inline: -1rem; }
 }

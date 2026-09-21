@@ -175,19 +175,19 @@ This workflow orchestrates **5 phases** over **1-2 weeks**, using multiple compo
 **Example Epics (SaaS Product):**
 
 ```
-Epic 1: Guided Onboarding
+Initiative 1: Guided Onboarding
 Hypothesis: We believe that adding a step-by-step onboarding checklist for non-technical users will increase activation rate from 40% to 60% because users currently drop off due to lack of guidance.
 
 Success Metric: Activation rate (% completing first action within 24 hours)
 Target: 40% → 60%
 
-Epic 2: Enterprise SSO
+Initiative 2: Enterprise SSO
 Hypothesis: We believe that adding SSO for enterprise accounts will increase enterprise deals closed from 2/quarter to 5/quarter because enterprise buyers require SSO for security compliance.
 
 Success Metric: Enterprise deals closed per quarter
 Target: 2 → 5
 
-Epic 3: Mobile-Optimized Workflows
+Initiative 3: Mobile-Optimized Workflows
 Hypothesis: We believe that optimizing core workflows for mobile will increase mobile DAU from 5% to 20% because mobile-first users currently can't complete workflows on the go.
 
 Success Metric: Mobile DAU as % of total DAU
@@ -207,9 +207,9 @@ Target: 5% → 20%
 **3. Map to Business Outcomes**
 - **For each epic:** Tag with primary business outcome
 - **Example:**
-  - Epic 1 (Guided Onboarding) → Retention
-  - Epic 2 (Enterprise SSO) → Acquisition (enterprise)
-  - Epic 3 (Mobile Workflows) → Engagement
+  - Initiative 1 (Guided Onboarding) → Retention
+  - Initiative 2 (Enterprise SSO) → Acquisition (enterprise)
+  - Initiative 3 (Mobile Workflows) → Engagement
 
 ### Outputs from Phase 2
 

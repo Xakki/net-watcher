@@ -21,7 +21,9 @@ MAX_DECODE_VIEWS = 16
 CANONICAL_HOST = "net.xakki.pro"
 CORRECTION_ENDPOINT = "https://github.com/Xakki/net-watcher/issues"
 PLACEHOLDERS = {"tbd", "todo", "unknown", "placeholder", "example", "n/a", "none"}
-ALLOWED_SITE_FILES = {"index.html", "styles.css"}
+ALLOWED_HTML_FILES = {"index.html", "styles.css"}
+ALLOWED_SITE_FILES = {"audit.md", *ALLOWED_HTML_FILES}
+ALLOWED_SOURCE_SITE_FILES = set(ALLOWED_SITE_FILES)
 REQUIRED_SECTION_IDS = {"status", "method", "clocks", "boundaries", "interpretation", "corrections"}
 DISALLOWED_TAGS = {"script", "form", "input", "button", "textarea", "select", "iframe", "object", "embed", "video", "audio", "canvas"}
 DISALLOWED_SITE_TERMS = {"analytics", "commercial customer", "customer data", "conversion", "marketing", "user tracking", "subject identifier", "raw report", "row-level", "api key", "access token"}
@@ -449,7 +451,7 @@ def _css_urls(text: str):
 
 
 def verify_site_content(html_text: str, css_text: str, actual: set[str]) -> None:
-    if actual != ALLOWED_SITE_FILES:
+    if actual != ALLOWED_HTML_FILES:
         raise SiteError(f"site file set mismatch: {sorted(actual)}")
     parser = SiteParser()
     parser.feed(html_text)
@@ -481,13 +483,44 @@ def verify_site_content(html_text: str, css_text: str, actual: set[str]) -> None
         raise SiteError("; ".join(errors))
 
 
+MARKDOWN_DISALLOWED_TAGS = {"script", "form", "input", "button", "textarea", "select", "iframe", "object", "embed"}
+MARKDOWN_URL = re.compile(r"!?\[[^\]]*\]\(([^)\s]+)(?:\s+[^)]*)?\)")
+MARKDOWN_HTML_TAG = re.compile(r"<\s*/?\s*([A-Za-z][A-Za-z0-9:-]*)\b[^>]*>")
+
+
+def verify_markdown(markdown_text: str) -> None:
+    """Validate future-served Markdown as inert, public-safe source content."""
+    errors: list[str] = []
+    lowered = markdown_text.casefold()
+    parser = SiteParser()
+    parser.feed(markdown_text)
+    errors.extend(parser.errors)
+    for match in MARKDOWN_HTML_TAG.finditer(markdown_text):
+        if match.group(1).casefold() in MARKDOWN_DISALLOWED_TAGS:
+            errors.append(f"prohibited {match.group(1).casefold()} element")
+    for match in MARKDOWN_URL.finditer(markdown_text):
+        url = match.group(1).strip()
+        kind = _url_kind(url)
+        if kind == "unsafe":
+            errors.append("unsafe URL is prohibited")
+        elif match.group(0).startswith("!") and kind == "external":
+            errors.append("external asset is prohibited")
+    if re.search(r"\b(?:on[a-z]+|javascript|data)\s*=", lowered):
+        errors.append("active Markdown attribute is prohibited")
+    if errors:
+        raise SiteError("; ".join(errors))
+
+
 def verify_site(site_dir: Path) -> None:
     if site_dir.is_symlink() or not site_dir.is_dir():
         raise SiteError("site must be a regular directory")
     reader = WorktreeReader(site_dir)
     try:
         actual = {entry.name for entry in os.scandir(site_dir)}
-        verify_site_content(reader.read("index.html"), reader.read("styles.css"), actual)
+        if actual != ALLOWED_SOURCE_SITE_FILES:
+            raise SiteError(f"site source file set mismatch: {sorted(actual)}")
+        verify_site_content(reader.read("index.html"), reader.read("styles.css"), ALLOWED_HTML_FILES)
+        verify_markdown(reader.read("audit.md"))
     finally:
         reader.close()
 
@@ -729,7 +762,7 @@ def _verify_repository_reader(reader: WorktreeReader | HeadReader, actual: set[s
     expected = set(boundary["tracked_files"])
     if actual != expected:
         raise SiteError(f"tracked publication set mismatch; missing={sorted(expected - actual)}; extra={sorted(actual - expected)}")
-    if set(boundary["served_files"]) != {"site/index.html", "site/styles.css"}:
+    if set(boundary["served_files"]) != {"site/audit.md", "site/index.html", "site/styles.css"}:
         raise SiteError("served publication set mismatch")
     ignored = _gitignore_patterns(reader.read(".gitignore"))
     if boundary["ignored_local_patterns"] != ignored:
@@ -803,6 +836,12 @@ def verify_publishable_repository(root: Path) -> HeadReader:
     return reader
 
 
+def verify_publishable_site(reader: HeadReader) -> None:
+    """Validate every file that the immutable publication boundary serves."""
+    verify_site_content(reader.read("site/index.html"), reader.read("site/styles.css"), ALLOWED_HTML_FILES)
+    verify_markdown(reader.read("site/audit.md"))
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Verify the Net Watcher static publication boundary.")
     parser.add_argument("--publish", action="store_true", help="require final publication decisions from immutable HEAD")
@@ -812,7 +851,7 @@ def main() -> int:
     try:
         if args.publish:
             reader = verify_publishable_repository(root)
-            verify_site_content(reader.read("site/index.html"), reader.read("site/styles.css"), {"index.html", "styles.css"})
+            verify_publishable_site(reader)
             config = _parse_json(reader.read("publication.json"))
             errors = _publication_errors(config)
             if errors:

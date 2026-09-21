@@ -11,8 +11,8 @@ __pycache__
 tests
 tools
 *.md
+!site/audit.md
 LICENSE
 publication.json
 publication-boundary.json
 AGENTS.md
-CLAUDE.md

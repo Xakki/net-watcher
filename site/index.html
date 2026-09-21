@@ -75,6 +75,53 @@
       </ol>
     </section>
 
+    <section class="case-study" id="synthetic-case" aria-labelledby="case-title">
+      <p class="section-label">SYNTHETIC EDUCATIONAL CASE</p>
+      <h2 id="case-title">Earlier registration change, later route change</h2>
+      <p class="case-lede">A registration object appears to change before a route change is observed. The ordering is real inside this fixture, but it does not establish causation.</p>
+
+      <div class="case-grid">
+        <div>
+          <h3>Fixture rules</h3>
+          <p>This is a teaching fixture, not a captured record. The registration clock describes when a record says its version was processed; that claimed time is not necessarily the real-world event time. The routing clock describes when a vantage point observed a route, including propagation and sampling delay. The validation clock describes when the two descriptions were checked together.</p>
+          <p>Three separate clocks are used here. Assume only minute-level resolution and no aligned clocks. A timestamp such as <time datetime="PT20M">t−20 minutes</time> is relative to the route observation, not a wall-clock claim.</p>
+        </div>
+        <div class="clock-timeline" aria-label="Three clocks in the synthetic fixture">
+          <dl>
+            <div><dt>Registration clock <span>t−20: version processed</span></dt><dd>A record reports a version transition.</dd></div>
+            <div><dt>Routing clock <span>t−5: route seen</span></dt><dd>One vantage point reports a route state.</dd></div>
+            <div><dt>Validation clock <span>t+10: sources checked</span></dt><dd>The descriptions coexist in one review snapshot.</dd></div>
+          </dl>
+        </div>
+      </div>
+
+      <div class="case-columns">
+        <div>
+          <h3>Tempting conclusion</h3>
+          <blockquote><p>“The registration change caused the route change because it came first.”</p></blockquote>
+          <h3>Evidence audit</h3>
+          <ol>
+            <li><strong>Label the claim.</strong> “Version processed at t−20” is a registration-record claim, not proof of when an underlying change happened.</li>
+            <li><strong>Label the observation.</strong> “Route seen at t−5” is an observation from one vantage point, not the route’s first appearance everywhere.</li>
+            <li><strong>Test alignment.</strong> Minute-level resolution and unknown delays leave overlap and ordering uncertainty.</li>
+            <li><strong>List alternatives.</strong> The changes may share an unobserved trigger, be independently scheduled, or reflect processing and propagation delays.</li>
+          </ol>
+        </div>
+        <div>
+          <h3>Defensible conclusion</h3>
+          <p>The fixture supports an association in reported order: a registration-object version transition was reported before a route state was observed. It does not establish causation, intent, ownership, responsibility, or the direction of influence. No hidden ground truth is asserted.</p>
+          <h3>What would reduce uncertainty</h3>
+          <p>Conceptually, uncertainty would narrow with independently documented event semantics, aligned clock precision, repeated observations from distinct vantage points, and a pre-specified comparison window. Those are evidence requirements for a future approved study, not instructions to collect data now.</p>
+        </div>
+      </div>
+
+      <details>
+        <summary>Self-check with worked answer</summary>
+        <p><strong>Question:</strong> Which statement is supported: (A) the object change caused the route change, (B) the two reported changes have an ordering in this fixture, or (C) the object owner intended the route change?</p>
+        <p><strong>Worked answer:</strong> B only. The fixture defines two reported times and a later validation snapshot. It does not define aligned clocks, first-seen times across the network, a mechanism, or intent. Therefore A and C exceed the evidence.</p>
+      </details>
+    </section>
+
     <section class="boundary" id="boundaries" aria-labelledby="boundary-title">
       <p class="section-label">Research boundary</p>
       <h2 id="boundary-title">Public structure, synthetic rehearsal.</h2>
