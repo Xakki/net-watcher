@@ -38,4 +38,4 @@ Deliver an in-repo review kit. Explicitly exclude inviting or contacting reviewe
 - A consent / no-data statement exists: no visitor analytics, no personal research data recorded, no unsolicited outreach, no accounts, no recordings.
 - An owner decision-record template exists covering revise / pause / prepare another synthetic case, using aggregate, non-identifying tallies and the strategy's stop rules.
 - The kit contains no invitation, contact, session-running, or data-collection mechanism, and states that a filled decision record is private review material that must not be committed to this repository.
-- The kit is tracked in the publication boundary and is awaiting independent review before this card advances further.
+- The kit is tracked in the publication boundary with independent review complete.
