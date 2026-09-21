@@ -695,6 +695,12 @@ class SiteVerifierTests(unittest.TestCase):
         self.assertFalse((ROOT / "CLAUDE.md").exists())
         self.assertTrue((ROOT / "AGENTS.md").is_file())
 
+    def test_landing_links_to_the_audit_as_a_plain_text_assessment(self):
+        html = (SITE / "index.html").read_text(encoding="utf-8")
+        self.assertIn('<a class="text-link" href="audit.md">', html)
+        self.assertIn("Read the product and market assessment (plain text)", html)
+        verify_site(SITE)
+
     def test_nginx_serves_markdown_as_inline_plain_text(self):
         nginx = (ROOT / "nginx.conf").read_text(encoding="utf-8")
         match = re.search(r"location\s+~\*\s+\\\.md\$\s*\{(?P<body>[^}]*)\}", nginx)
