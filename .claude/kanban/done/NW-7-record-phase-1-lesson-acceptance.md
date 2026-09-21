@@ -27,3 +27,10 @@ Verify each Phase 1 acceptance criterion against the delivered lesson and record
 
 **Decisions:**
 - The owner accepted the lesson as sufficiently useful and safe to continue into Phase 2.
+
+**Completion:**
+- Three clocks are presented, with claimed times kept separated from observable times.
+- Competing explanations and an evidence audit are presented ahead of any conclusion.
+- The lesson reaches a defensible conclusion and includes a worked self-check.
+- No causal or intent attribution is made.
+- Repository and site safety checks pass.
