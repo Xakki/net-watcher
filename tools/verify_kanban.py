@@ -19,8 +19,8 @@ REQUIRED_SECTIONS = (
     "**Acceptance Criteria:**",
 )
 EXPECTED_STAGES = {
-    **{f"NW-{number}": "done" for number in range(1, 6)},
-    **{f"NW-{number}": "grooming" for number in range(6, 7)},
+    **{f"NW-{number}": "done" for number in (1, 2, 3, 4, 5, 7)},
+    **{f"NW-{number}": "grooming" for number in (6, 8)},
 }
 
 
@@ -34,7 +34,7 @@ def verify_board(root: Path) -> None:
     if missing_dirs:
         raise KanbanError(f"missing stages: {missing_dirs}")
     lock_lines = (root / ".claude" / "kanban.lock").read_text(encoding="utf-8").splitlines()
-    if lock_lines != ["prefix=NW", "NW=6"]:
+    if lock_lines != ["prefix=NW", "NW=8"]:
         raise KanbanError("prefix or counter drift")
     seen: dict[str, str] = {}
     errors: list[str] = []
@@ -42,7 +42,7 @@ def verify_board(root: Path) -> None:
     for stage in STAGES:
         cards.extend((stage, path) for path in sorted((board / stage).glob("*.md")))
     for stage, path in cards:
-        match = re.fullmatch(r"(NW-[1-6])-[a-z0-9]+(?:-[a-z0-9]+)*\.md", path.name)
+        match = re.fullmatch(r"(NW-[1-8])-[a-z0-9]+(?:-[a-z0-9]+)*\.md", path.name)
         if not match:
             errors.append(f"invalid filename: {path.name}")
             continue
@@ -70,7 +70,7 @@ def verify_board(root: Path) -> None:
         if re.search(r"\b[0-9a-f]{40}\b", text, re.IGNORECASE):
             errors.append(f"commit identifier in {card_id}")
         for dependency in re.findall(r"\bNW-(\d+)\b", text, re.IGNORECASE):
-            if not 1 <= int(dependency) <= 6:
+            if not 1 <= int(dependency) <= 8:
                 errors.append(f"invalid dependency in {card_id}")
     if set(seen) != set(EXPECTED_STAGES):
         errors.append(f"card set mismatch: {sorted(seen)}")
@@ -85,7 +85,7 @@ def main() -> int:
     except (KanbanError, ValueError) as error:
         print(f"kanban verification failed: {error}", file=sys.stderr)
         return 1
-    print("kanban verification passed: 6 cards")
+    print("kanban verification passed: 8 cards")
     return 0
 
 
