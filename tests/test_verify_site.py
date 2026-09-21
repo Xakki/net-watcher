@@ -71,6 +71,22 @@ class SiteVerifierTests(unittest.TestCase):
             with self.subTest(required=required):
                 self.assertIn(required, html)
 
+    def test_hidden_file_deny_precedes_markdown_location(self):
+        conf = (ROOT / "nginx.conf").read_text(encoding="utf-8")
+        deny_match = re.search(r"location\s+~\s+/\\\.\s*\{", conf)
+        md_match = re.search(r"location\s+~\*\s*\\\.md\$\s*\{", conf)
+        self.assertIsNotNone(deny_match, "hidden-file deny location is missing")
+        self.assertIsNotNone(md_match, "markdown location is missing")
+        self.assertLess(
+            deny_match.start(),
+            md_match.start(),
+            "the hidden-file deny regex location must precede any other regex "
+            "location able to match dotfile paths (e.g. the markdown location); "
+            "nginx picks the first matching regex location in file order, so a "
+            "later deny cannot stop an earlier location like /.git/HEAD.md from "
+            "matching the markdown handler first",
+        )
+
     def test_development_strategy_is_tracked_and_keeps_live_work_deferred(self):
         strategy_path = ROOT / "docs/development-strategy.md"
         strategy = strategy_path.read_text(encoding="utf-8")
