@@ -1,11 +1,13 @@
 # Phase 2 lesson review kit
 
-This kit supports a small, explicitly approved Phase 2 educational review of
-the accepted Phase 1 synthetic lesson, "Earlier registration change, later
-route change" (the case study on the public landing page, section id
-`synthetic-case`). It is a repository reference, not a served page, and it
-contains no mechanism to invite reviewers, run a session, or collect data.
-Those actions are owner-only and happen separately, outside this repository.
+This kit prepares for a small Phase 2 educational review of the accepted
+Phase 1 synthetic lesson, "Earlier registration change, later route change"
+(the case study on the public landing page, section id `synthetic-case`).
+Explicit owner approval is a precondition that must exist before any review
+round starts; no review is active now. It is a repository reference, not a
+served page, and it contains no mechanism to invite reviewers, run a
+session, or collect data. Those actions are owner-only and happen
+separately, outside this repository.
 
 ## Reviewer brief
 
@@ -44,7 +46,9 @@ wording does not need to match, only the substance.
 - **Met:** Names the inference "the registration change caused the route
   change because it came first," and connects it to the ordering of the
   registration clock (claimed version-processed time) coming before the
-  routing clock (observed route time).
+  routing clock (observed route time). Naming the validation clock (when
+  the two descriptions were checked together) as part of the ordering is
+  not required but does not count against the response.
 - **Partly met:** Names a causal-sounding conclusion but does not tie it to
   the specific ordering, or conflates the tempting inference with the
   defensible conclusion.
@@ -53,26 +57,35 @@ wording does not need to match, only the substance.
 
 ### Second task — name the missing evidence
 
-- **Met:** Identifies at least one concrete gap: that the registration clock
-  is a claimed/reported time rather than an observed event time, that the
-  routing clock reflects one vantage point rather than a first-seen time
-  everywhere, that resolution is minute-level with unaligned clocks (so
-  overlap and ordering are uncertain), or that competing explanations (shared
-  unobserved trigger, independent scheduling, processing/propagation delay)
-  are unruled-out.
-- **Partly met:** Gestures at "more data would help" without naming which gap
-  (claimed-vs-observed, vantage point, clock alignment, or an alternative
-  explanation) it would close.
-- **Not met:** States no missing evidence, or treats the existing three
-  clocks as already sufficient to confirm causation.
+- **Met:** Identifies at least one concrete gap, grounded in the lesson's own
+  wording, from either of two equivalent lesson lists. From the evidence
+  audit: that the registration clock is a claimed/reported time rather than
+  an observed event time, that the routing clock reflects one vantage point
+  rather than a first-seen time everywhere, that resolution is minute-level
+  with unaligned clocks (so overlap and ordering are uncertain), or that
+  competing explanations (shared unobserved trigger, independent scheduling,
+  processing/propagation delay) are unruled-out. From "what would reduce
+  uncertainty": independently documented event semantics, aligned clock
+  precision, repeated observations from distinct vantage points, or a
+  pre-specified comparison window. A response citing any single item from
+  either list, tied to why the tempting inference is unsupported, qualifies
+  as met.
+- **Partly met:** Gestures at "more data would help" or "more certainty is
+  needed" without naming a specific item from either list above.
+- **Not met:** States no missing evidence, treats the existing three clocks
+  as already sufficient to confirm causation, or recasts a named gap as
+  support for a causal, intent, or responsibility reading instead of a limit
+  on one.
 
 ### Third task — explain why the conclusion stays observational
 
 - **Met:** States that the fixture supports only an association in reported
   order (a version transition reported before a route state was observed),
   and explicitly excludes causation, intent, ownership, responsibility, or
-  direction of influence, referencing claimed-vs-observed time or the
-  unaligned/minute-level clocks as the reason.
+  direction of influence, referencing claimed-vs-observed time, the
+  unaligned/minute-level clocks, or the validation clock (the later snapshot
+  that only confirms the two descriptions coexisted, not that either caused
+  the other) as the reason.
 - **Partly met:** Correctly avoids causal language but does not explain why
   (no reference to claimed-vs-observed distinction, vantage-point limits, or
   clock resolution).
@@ -95,11 +108,13 @@ wording does not need to match, only the substance.
 
 ## Owner decision-record template (blank)
 
-Fill this section only after a review round, and only with aggregate,
-non-identifying counts. **A filled record is private review material and
-must not be committed to this public repository** (see `AGENTS.md`, which
-prohibits private review material and evidence in this repository). Keep any
-filled record in the owner's own private records.
+Before any review round, copy this blank template to a private location
+outside this repository, and fill it only there, with aggregate,
+non-identifying counts. **Never fill in or commit a filled record in this
+repository — this file keeps only the blank template.** A filled record is
+private review material and must not be committed to this public repository
+(see `AGENTS.md`, which prohibits private review material and evidence in
+this repository).
 
 ```
 Review round: [owner-internal reference, not a repository artifact]
